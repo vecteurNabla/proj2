@@ -65,19 +65,26 @@ let show_sheet () =
 (* on marque qu'on doit tout recalculer en remplissant le tableau de "None" *)
 (*    à faire : mettre tout le monde à None *)
 let invalidate_sheet () = 
-  print_string "invalidate_sheet : la fonction doit encore etre implementee\n"
+  sheet_iter (fun i j -> (read_cell (i, j)).value <- None)
 
 
 (*    à faire : le cœur du programme *)    
 let rec eval_form fo = match fo with
-  | Cst n -> 27.19
-  | Cell (p,q) -> 27.19
-  | Op(o,fs) -> 27.19
-
+  | Cst n -> n
+  | Cell (p,q) -> eval_cell p q
+  | Op(o,fs) -> match o with
+               | S -> List.fold_left (fun a b -> a +. (eval_form b)) 0.0 fs
+               | M -> List.fold_left (fun a b -> a *. (eval_form b)) 1.0 fs
+               | A -> let s,n = List.fold_left (fun a b ->
+                                   fst a +. (eval_form b), snd a + 1
+                                 ) (0.0, 0) fs in
+                     s/.float_of_int(n)
 (* ici un "and", car eval_formula et eval_cell sont a priori 
    deux fonctions mutuellement récursives *)
 and eval_cell i j =
-  19.27
+  let c = read_cell (i, j) in
+  let x = eval_form c.formula in
+  c.value <- Some x; x
 
 (* on recalcule le tableau, en deux étapes *)
 let recompute_sheet () =

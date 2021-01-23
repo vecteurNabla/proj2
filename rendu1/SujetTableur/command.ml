@@ -32,7 +32,6 @@ let show_comm c =
 let run_command c = match c with
   | Show cn ->
      begin
-       recompute_sheet();
        let co = cellname_to_coord cn in
        eval_p_debug (fun () ->
            "Showing cell "
@@ -44,13 +43,13 @@ let run_command c = match c with
   | ShowAll ->
      begin
        eval_p_debug (fun () -> "Show All\n");
-       recompute_sheet();
        show_sheet ()
      end
   | Upd(cn,f) ->
      let co = cellname_to_coord cn in
      eval_p_debug (fun () -> "Update cell " ^ cell_name2string cn ^ "\n");
-     update_cell_formula co f
+     update_cell_formula co f;
+     recompute_sheet()
 
 (* exécuter une liste de commandes *)
 let run_script cs = List.iter run_command cs
