@@ -50,7 +50,7 @@ let show_sheet () =
        (* aller à la ligne en fin de ligne *)
       if j = 0 then print_newline() else ();
       let c = read_cell (i,j) in
-      print_string (cell_val2string c);
+      print_string (cell_val2string c) ;
       print_string " "
     end
   in
@@ -79,6 +79,7 @@ let rec eval_form fo = match fo with
                                    fst a +. (eval_form b), snd a + 1
                                  ) (0.0, 0) fs in
                      s/.float_of_int(n)
+               | Max -> List.fold_left (fun a b -> max a (eval_form b)) min_float fs
 (* ici un "and", car eval_formula et eval_cell sont a priori 
    deux fonctions mutuellement récursives *)
 and eval_cell i j =

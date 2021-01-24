@@ -11,7 +11,7 @@ open Command
 %token <float> NBR       /* le lexème NBR a un attribut flottant */
 %token <string> CELLROW       /* le lexème CELLROW a un attribut, de type string */
 %token LPAREN RPAREN EQUAL SEMICOL DOT
-%token SUM MULT AVERAGE SHOW SHOWALL
+%token SUM MULT AVERAGE SHOW SHOWALL MAX
 %token EOF
 
   /*
@@ -46,6 +46,7 @@ clist:
    | SUM { S }
    | MULT { M }
    | AVERAGE { A }
+   | MAX { Max }
   ;
   
   formula:
