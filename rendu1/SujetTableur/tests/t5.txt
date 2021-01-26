@@ -1,0 +1,6 @@
+A1=8
+A2=1
+B1=MULT(A1;A2)
+Show B1
+A2 = 2
+ShowAll

@@ -4,7 +4,7 @@ let print_number = print_float
 
 (* deux coordonnées, p.ex. ("B",7) *)
 type cellname = string*int
-
+type coord = int*int
 
 (* les deux fonctions ci-dessous sont a reprendre, un jour ou l'autre :
  * elles ne marchent que pour des noms de colonnes ne comportant qu'un
@@ -32,13 +32,14 @@ type form = Cst of number | Cell of (int*int) | Op of oper * form list
 (* cellules *)
 (* un type enregistrement
  * "mutable" signifie que l'on pourra modifier le champ
- * pour info, on a  type 'a option = None | Some of 'a (ici, 'a c'est number) 
+ * pour info, on a  type 'a option = None | Some of 'a (ici, 'a c'est number)
  * cell est un enregistrement avec deux champs, un champ formula de type form,
- * et un champ value contenant soit Some f (avec f un float), soit None *)
-type cell = { mutable formula : form; mutable value : number option }
+ * et un champ value contenant soit Some f (avec f un float), soit None
+ * dep contient la liste des cellules qui dépendent de cette cellule *)
+type cell = { mutable formula : form ; mutable value : number option ; mutable dep : coord list }
 
 (* cellule par défait : pas de valeur, et la formule correspondante est la constante 0. *)
-let default_cell = { formula = Cst 0.; value = None }
+let default_cell = { formula = Cst 0.; value = None ; dep = [] }
 
 
 
@@ -85,3 +86,12 @@ let rec form2string = function
      end
 
 let rec show_form f = ps (form2string f)
+
+(* renvoie la liste des cellules dont dépend la formule *)
+let form2dep f =
+  let rec make_list acc = function
+    | Cst _ -> acc
+    | Cell co -> co :: acc
+    | Op(_,t) -> List.fold_left make_list acc t
+  in
+  make_list [] f
