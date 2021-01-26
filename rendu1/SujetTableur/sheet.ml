@@ -16,7 +16,7 @@ let update_cell_formula co f =
   (* supression des anciennes dependances *)
   let remove_dep co' =
     let c' = get co' in
-    c'.dep <- List.filter (fun co'' -> co != co'') c'.dep
+    c'.dep <- List.filter (fun co'' -> co <> co'') c'.dep
   in
   List.iter remove_dep (form2dep c.formula) ;
   (* ajout des nouvelles *)
@@ -104,8 +104,9 @@ and eval_cell i j =
   let x = eval_form c.formula in
   c.value <- Some x ; x
 
-(* on recalcule le tableau, en deux étapes *)
-let rec recompute co =
-  ignore ( eval_cell (fst co) (snd co) );
-  List.iter recompute (get co).dep
+(* on recalcule la cellule de coordonnées [co], et toutes celles qui
+ * en dépendent *)
+let rec recompute_cell co =
+  ignore (eval_cell (fst co) (snd co));
+  List.iter recompute_cell (get co).dep
   
