@@ -49,7 +49,7 @@ let run_command c = match c with
      let co = cellname_to_coord cn in
      eval_p_debug (fun () -> "Update cell " ^ cell_name2string cn ^ "\n");
      update_cell_formula co f;
-     recompute co
+     recompute_cell co
 
 (* exécuter une liste de commandes *)
 let run_script cs = List.iter run_command cs
