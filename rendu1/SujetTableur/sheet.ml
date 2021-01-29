@@ -50,7 +50,7 @@ let sheet_iter f =
  * une piste *)
 let init_sheet () =
   let init_cell i j =
-    let c = { value = None; formula = Cst 0. ; dep = [] } in
+    let c = { value = None; formula = Cst _0 ; dep = [] } in
     thesheet.(i).(j) <- c
   in
   sheet_iter init_cell
@@ -90,13 +90,13 @@ let rec eval_form fo = match fo with
   | Cst n -> n
   | Cell (p,q) -> eval_cell p q
   | Op(o,fs) -> match o with
-               | S -> List.fold_left (fun a b -> a +. (eval_form b)) 0.0 fs
-               | M -> List.fold_left (fun a b -> a *. (eval_form b)) 1.0 fs
+               | S -> List.fold_left (fun a b -> a +: (eval_form b)) _0 fs
+               | M -> List.fold_left (fun a b -> a *: (eval_form b)) _1 fs
                | A -> let s,n = List.fold_left (fun a b ->
-                                   fst a +. (eval_form b), snd a + 1
-                                 ) (0.0, 0) fs in
-                     s/.float_of_int(n)
-               | Max -> List.fold_left (fun a b -> max a (eval_form b)) min_float fs
+                                   fst a +: (eval_form b), snd a + 1
+                                 ) (_0, 0) fs in
+                     s/:(I n)
+               | Max -> List.fold_left (fun a b -> max_number a (eval_form b)) _min fs
 (* ici un "and", car eval_formula et eval_cell sont a priori
    deux fonctions mutuellement récursives *)
 and eval_cell i j =

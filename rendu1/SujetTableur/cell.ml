@@ -1,6 +1,40 @@
 (* les nombres avec lesquels on calcule *)
-type number = float
-let print_number = print_float
+type number = F of float | I of int
+
+let _0 = I 0
+let _1 = I 1
+let _min = I min_int
+
+let ( +: ) n1 n2 = match n1,n2 with
+  | I x, I y -> I (x+y)
+  | I x, F y | F y, I x -> F ( y +. (float_of_int x) )
+  | F x, F y -> F (x+.y)
+
+let ( *: ) n1 n2 = match n1,n2 with
+  | I x, I y -> I (x*y)
+  | I x, F y | F y, I x -> F ( y *. (float_of_int x) )
+  | F x, F y -> F (x*.y)
+
+let ( /: ) n1 n2 = match n1,n2 with
+  | I x, I y ->
+    if x mod y = 0 then I (x/y)
+    else F ( (float_of_int x) /. (float_of_int y) )
+  | I x, F y -> F ( (float_of_int x) /. y )
+  | F x, I y -> F ( x /. (float_of_int y) )
+  | F x, F y -> F (x/.y)
+
+let max_number n1 n2 = match n1,n2 with
+  | I x, I y -> I (max x y)
+  | I x, F y | F y, I x -> F (max y (float_of_int x) )
+  | F x, F y -> F (max x y)
+
+let print_number = function
+  | F x -> print_float x
+  | I x -> print_int x
+
+let string_of_number = function
+  | F x -> string_of_float x
+  | I x -> string_of_int x
 
 (* deux coordonnées, p.ex. ("B",7) *)
 type cellname = string*int
@@ -39,7 +73,7 @@ type form = Cst of number | Cell of (int*int) | Op of oper * form list
 type cell = { mutable formula : form ; mutable value : number option ; mutable dep : coord list }
 
 (* cellule par défait : pas de valeur, et la formule correspondante est la constante 0. *)
-let default_cell = { formula = Cst 0.; value = None ; dep = [] }
+let default_cell = { formula = Cst _0 ; value = None ; dep = [] }
 
 
 
@@ -48,7 +82,7 @@ let cell_name2string cn = (fst cn)^(string_of_int (snd cn))
 
 let cell_val2string c = match c.value with
   | None -> "_"
-  | Some n -> string_of_float n
+  | Some n -> string_of_number n
 
 let oper2string = function
   | S -> "SUM"
@@ -79,7 +113,7 @@ let rec show_list f = function
 (* convertir une formule en une chaîne de caractères *)
 let rec form2string = function
   | Cell c -> cell_name2string (coord_to_cellname c)
-  | Cst n -> string_of_float n
+  | Cst n -> string_of_number n
   | Op(o,fl) ->
      begin
        (oper2string o) ^ "(" ^ list2string form2string fl ^ ")"
