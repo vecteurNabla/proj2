@@ -3,6 +3,9 @@ open Cell
 
 let size = (20,10) (* lignes, colonnes *)
 
+(* Exception pour les boucles de dépendances *)
+exception Dependency_loop
+         
 (* le tableau que l'on manipule dans le programme ; *)
 (* si nécessaire, tapez "fst" et "snd" dans un interprete Caml pour connaître leur type *)
 (* default_cell est défini dans cell.ml (module Cell) *)
@@ -13,18 +16,29 @@ let read_cell co = thesheet.(fst co).(snd co)
 
 let update_cell_formula co f =
   let c = (get co) in
+  (* Trouve les boucles de dépendances *)
+  let t = Hashtbl.create 237 in
+  let rec find_loops co =
+    if Hashtbl.mem t co then
+      raise Dependency_loop
+    else
+      Hashtbl.add t co ();
+      let new_c = get co in
+      List.iter (find_loops) new_c.dep
+  in
+  find_loops co;
   (* supression des anciennes dependances *)
   let remove_dep co' =
     let c' = get co' in
     c'.dep <- List.filter (fun co'' -> co <> co'') c'.dep
   in
-  List.iter remove_dep (form2dep c.formula) ;
+  List.iter remove_dep (form2dep c.formula);
   (* ajout des nouvelles *)
   let add_dep co' =
     let c' = get co' in
     c'.dep <- co::c'.dep
   in
-  List.iter add_dep (form2dep f) ;
+  List.iter add_dep (form2dep f);
   (* maj de la formule *)
   c.formula <- f
 
