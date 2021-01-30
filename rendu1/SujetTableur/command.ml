@@ -48,8 +48,16 @@ let run_command c = match c with
   | Upd(cn,f) ->
      let co = cellname_to_coord cn in
      eval_p_debug (fun () -> "Update cell " ^ cell_name2string cn ^ "\n");
-     update_cell_formula co f;
-     recompute_cell co
+     let c = get co in
+     let back_f, back_dep = c.formula, c.dep in
+     try
+       update_cell_formula co f;
+       recompute_cell co;
+     with Dependency_loop ->
+       (
+         c.formula <- back_f;
+         c.dep <- back_dep
+       )
 
 (* exécuter une liste de commandes *)
 let run_script cs = List.iter run_command cs

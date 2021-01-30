@@ -20,13 +20,14 @@ let update_cell_formula co f =
   let t = Hashtbl.create 237 in
   let rec find_loops co =
     if Hashtbl.mem t co then
-      raise Dependency_loop
+      (
+        raise Dependency_loop
+      )
     else
       Hashtbl.add t co ();
       let new_c = get co in
       List.iter (find_loops) new_c.dep
   in
-  find_loops co;
   (* supression des anciennes dependances *)
   let remove_dep co' =
     let c' = get co' in
@@ -39,6 +40,8 @@ let update_cell_formula co f =
     c'.dep <- co::c'.dep
   in
   List.iter add_dep (form2dep f);
+  (* ici on cherche les boucles *)
+  find_loops co;
   (* maj de la formule *)
   c.formula <- f
 
