@@ -53,7 +53,7 @@ let run_command c = match c with
      end
   | Upd(cn,f) ->
      let co = cellname_to_coord cn in
-     eval_p_debug (fun () -> "Update cell " ^ cell_name2string cn ^ "\n");
+     eval_p_debug (fun () -> "Update cell " ^ cell_name2string cn ^ " = " ^ form2string f ^ "\n");
      let c = get co in
      let back_f = c.formula in
      try
