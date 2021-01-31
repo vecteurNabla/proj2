@@ -5,14 +5,20 @@ let size = (20,10) (* lignes, colonnes *)
 
 (* Exception pour les boucles de dépendances *)
 exception Dependency_loop
+
+(* La table courante *)
+let current_sheet = ref 0
          
 (* le tableau que l'on manipule dans le programme ; *)
 (* si nécessaire, tapez "fst" et "snd" dans un interprete Caml pour connaître leur type *)
 (* default_cell est défini dans cell.ml (module Cell) *)
-let thesheet = Array.make_matrix (fst size) (snd size) (default_cell ())
-let get co = thesheet.(fst co).(snd co)
+let thesheets = Array.init 10
+  (fun i -> Array.make_matrix (fst size) (snd size) (default_cell ()))
+              
+(* Les deux fonctions suivantes sont synonymes *)
+let get co = thesheets.(!current_sheet).(fst co).(snd co)
 
-let read_cell co = thesheet.(fst co).(snd co)
+let read_cell co = thesheets.(!current_sheet).(fst co).(snd co)
 
 let update_cell_formula co f =
   let c = (get co) in
@@ -65,7 +71,7 @@ let sheet_iter f =
 let init_sheet () =
   let init_cell i j =
     let c = default_cell () in
-    thesheet.(i).(j) <- c
+    thesheets.(!current_sheet).(i).(j) <- c
   in
   sheet_iter init_cell
 

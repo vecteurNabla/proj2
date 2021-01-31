@@ -13,6 +13,7 @@ exception Paf
  - l'affichage d'une cellule, 
  - l'affichage de toute la feuille *)
 type comm = Upd of cellname * form | Show of cellname | ShowAll
+            | SwitchTo of int
 
 
 (************ affichage **************)
@@ -31,6 +32,10 @@ let show_comm c =
        ps ")"
      end
   | ShowAll -> ps "ShowAll"
+  | SwitchTo i -> (
+    ps "SwitchTo ";
+    print_int i
+  )
 
 (************ faire tourner les commandes **************)
 
@@ -41,7 +46,7 @@ let run_command c = match c with
        let co = cellname_to_coord cn in
        eval_p_debug (fun () ->
            "Showing cell "
-           ^ cell_name2string cn
+           ^ cell_name2string cn ^ ": "
          );
        ps (cell_val2string (read_cell co)); (* <- ici ps, et pas p_debug, car on veut afficher au moins cela *)
        print_newline()
@@ -51,6 +56,12 @@ let run_command c = match c with
        eval_p_debug (fun () -> "Show All\n");
        show_sheet ()
      end
+  | SwitchTo i ->
+     (
+       eval_p_debug (fun () -> "Switching to sheet " ^ (string_of_int i)
+                            ^ "\n");
+       current_sheet := (i - 1)
+     )
   | Upd(cn,f) ->
      let co = cellname_to_coord cn in
      eval_p_debug (fun () -> "Update cell " ^ cell_name2string cn ^ " = " ^ form2string f ^ "\n");

@@ -1,0 +1,7 @@
+A1=42
+SwitchTo s2
+A1=612
+SwitchTo s1
+Show A1
+SwitchTo s2
+Show A1
