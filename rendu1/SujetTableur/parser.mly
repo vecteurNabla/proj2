@@ -10,7 +10,7 @@ open Command
 %token <int> INT       /* le lexème INT a un attribut entier */
 %token <float> NBR       /* le lexème NBR a un attribut flottant */
 %token <string> CELLROW       /* le lexème CELLROW a un attribut, de type string */
-%token LPAREN RPAREN EQUAL SEMICOL DOT
+%token LPAREN RPAREN EQUAL SEMICOL DOT COLON
 %token SUM MULT AVERAGE SHOW SHOWALL MAX
 %token EOF
 
@@ -31,7 +31,7 @@ clist:
    | singlecomm clist { $1::$2 }
    | singlecomm                { [$1] }
   ;
-  
+
   singlecomm:
    | cell EQUAL formula { Upd($1,$3) }
    | SHOW cell { Show($2) }
@@ -48,10 +48,10 @@ clist:
    | AVERAGE { A }
    | MAX { Max }
   ;
-  
+
   formula:
-   | NBR { Cst (F $1) } 
-   | INT { Cst (I $1) } 
+   | NBR { Cst (F $1) }
+   | INT { Cst (I $1) }
    | cell { Cell (Cell.cellname_to_coord $1) }
    | operand LPAREN forlist RPAREN { Op($1,$3) }
   ;
@@ -59,7 +59,6 @@ clist:
   forlist:
    | formula { [$1] }
    | formula SEMICOL forlist { $1::$3 }
+   | cell COLON cell { (Cell.interval_to_list (Cell.cellname_to_coord $1) (Cell.cellname_to_coord $3) ) }
+   | cell COLON cell SEMICOL forlist { (Cell.interval_to_list (Cell.cellname_to_coord $1) (Cell.cellname_to_coord $3) )@$5 }
   ;
-  
-
-       

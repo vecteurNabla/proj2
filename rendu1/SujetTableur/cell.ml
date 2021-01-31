@@ -55,13 +55,21 @@ let coord_to_cellname co =
   else
     (String.make 1 (char_of_int (column_nbr + 65)), fst co +1)
 
-
 (* operations que l'on peut utiliser dans les formules *)
 type oper = S | M | A | Max (* sum, multiply, average, maximum *)
 
 (* formules : une valeur, la même valeur qu'une autre cellule, une opération et
  * ses arguments *)
-type form = Cst of number | Cell of (int*int) | Op of oper * form list
+type form = Cst of number | Cell of coord | Op of oper * form list
+
+(* transforme un couple de coord en l'intervalle represente *)
+let interval_to_list cos coe =
+  let rec build_list co_cur =
+    if (fst co_cur) > (fst coe) then []
+    else if (snd co_cur) > (snd coe) then build_list ((fst co_cur) + 1,snd cos)
+    else (Cell co_cur)::( build_list (fst co_cur, (snd co_cur) + 1) )
+  in
+  build_list cos
 
 (* cellules *)
 (* un type enregistrement

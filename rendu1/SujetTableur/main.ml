@@ -27,7 +27,7 @@ let spreadsheet () =
   (* Les différentes options de l'exécutable *)
   let optlist = [
       ("-paf", Arg.Set paf, "Active le mode paf");
-      ("-debug", Arg.Set Debug.debug, "Acitve le mode de debuggage")
+      ("-debug", Arg.Set Debug.debug, "Active le mode de debuggage")
     ] in
   let usage = "Ze Okamel spraidechite" in
   Arg.parse
