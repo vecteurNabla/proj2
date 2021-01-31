@@ -49,15 +49,13 @@ let run_command c = match c with
      let co = cellname_to_coord cn in
      eval_p_debug (fun () -> "Update cell " ^ cell_name2string cn ^ "\n");
      let c = get co in
-     let back_f, back_dep = c.formula, c.dep in
+     let back_f = c.formula in
      try
        update_cell_formula co f;
-       recompute_cell co;
+       recompute_cell co
      with Dependency_loop ->
-       (
-         c.formula <- back_f;
-         c.dep <- back_dep
-       )
+       eval_p_debug (fun () -> "Dependency loop found, reverting\n");
+       update_cell_formula co back_f
 
 (* exécuter une liste de commandes *)
 let run_script cs = List.iter run_command cs

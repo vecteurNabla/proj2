@@ -67,15 +67,23 @@ type form = Cst of number | Cell of (int*int) | Op of oper * form list
 (* un type enregistrement
  * "mutable" signifie que l'on pourra modifier le champ
  * pour info, on a  type 'a option = None | Some of 'a (ici, 'a c'est number)
- * cell est un enregistrement avec deux champs, un champ formula de type form,
+ * cell est un enregistrement avec trois champs, un champ formula de type form,
  * et un champ value contenant soit Some f (avec f un float), soit None
- * dep contient la liste des cellules qui dépendent directement de cette cellule *)
-type cell = { mutable formula : form ; mutable value : number option ; mutable dep : coord list }
+ * dep_o contient la liste des cellules qui dépendent directement de
+ * cette cellule.
+ *)
+type cell = {
+    mutable formula : form;
+    mutable value : number option;
+    mutable dep_o : coord list;
+  }
 
 (* cellule par défait : pas de valeur, et la formule correspondante est la constante 0. *)
-let default_cell = { formula = Cst _0 ; value = None ; dep = [] }
-
-
+let default_cell () = {
+    formula = Cst _0;
+    value = None;
+    dep_o = []
+  }
 
 (************ affichage **************)
 let cell_name2string cn = (fst cn)^(string_of_int (snd cn))

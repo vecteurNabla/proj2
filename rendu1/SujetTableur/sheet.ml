@@ -9,7 +9,7 @@ exception Dependency_loop
 (* le tableau que l'on manipule dans le programme ; *)
 (* si nécessaire, tapez "fst" et "snd" dans un interprete Caml pour connaître leur type *)
 (* default_cell est défini dans cell.ml (module Cell) *)
-let thesheet = Array.make_matrix (fst size) (snd size) default_cell
+let thesheet = Array.make_matrix (fst size) (snd size) (default_cell ())
 let get co = thesheet.(fst co).(snd co)
 
 let read_cell co = thesheet.(fst co).(snd co)
@@ -26,24 +26,25 @@ let update_cell_formula co f =
     else
       Hashtbl.add t co ();
       let new_c = get co in
-      List.iter (find_loops) new_c.dep
+      List.iter (find_loops) new_c.dep_o
   in
   (* supression des anciennes dependances *)
   let remove_dep co' =
     let c' = get co' in
-    c'.dep <- List.filter (fun co'' -> co <> co'') c'.dep
+    c'.dep_o <- List.filter (fun co'' -> co <> co'') c'.dep_o
   in
   List.iter remove_dep (form2dep c.formula);
   (* ajout des nouvelles *)
   let add_dep co' =
     let c' = get co' in
-    c'.dep <- co::c'.dep
+    c'.dep_o <- co::c'.dep_o
   in
-  List.iter add_dep (form2dep f);
-  (* ici on cherche les boucles *)
-  find_loops co;
+  let new_f_deps = form2dep f in
+  List.iter add_dep new_f_deps;
   (* maj de la formule *)
-  c.formula <- f
+  c.formula <- f;
+  (* ici on cherche les boucles *)
+  find_loops co
 
 let update_cell_value co v = (get co).value <- v
 
@@ -67,7 +68,7 @@ let sheet_iter f =
  * une piste *)
 let init_sheet () =
   let init_cell i j =
-    let c = { value = None; formula = Cst _0 ; dep = [] } in
+    let c = default_cell () in
     thesheet.(i).(j) <- c
   in
   sheet_iter init_cell
@@ -125,5 +126,5 @@ and eval_cell i j =
  * en dépendent *)
 let rec recompute_cell co =
   ignore (eval_cell (fst co) (snd co));
-  List.iter recompute_cell (get co).dep
+  List.iter recompute_cell (get co).dep_o
   

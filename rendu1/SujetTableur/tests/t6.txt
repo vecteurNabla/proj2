@@ -1,0 +1,10 @@
+A1=42.
+A2=A1
+A3=A2
+A4=A3
+B2=A2
+ShowAll
+A2=612.
+ShowAll
+A3=237.
+ShowAll

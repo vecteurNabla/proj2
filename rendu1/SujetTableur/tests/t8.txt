@@ -1,0 +1,7 @@
+A1 = A2
+A2 = A3
+A3 = 42
+A3 = A1
+ShowAll
+A2 = 612
+ShowAll
