@@ -1,0 +1,6 @@
+A1=5
+A2=A1
+A3=SUM(A1;A2)
+ShowAll
+A1=42
+ShowAll

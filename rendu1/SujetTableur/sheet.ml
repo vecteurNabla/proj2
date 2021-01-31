@@ -17,15 +17,11 @@ let read_cell co = thesheet.(fst co).(snd co)
 let update_cell_formula co f =
   let c = (get co) in
   (* Trouve les boucles de dépendances *)
-  let t = Hashtbl.create 237 in
-  let rec find_loops co =
-    if Hashtbl.mem t co then
-      (
-        raise Dependency_loop
-      )
+  let rec find_loops co' =
+    if co' = co then
+      raise Dependency_loop
     else
-      Hashtbl.add t co ();
-      let new_c = get co in
+      let new_c = get co' in
       List.iter (find_loops) new_c.dep_o
   in
   (* supression des anciennes dependances *)
@@ -44,7 +40,7 @@ let update_cell_formula co f =
   (* maj de la formule *)
   c.formula <- f;
   (* ici on cherche les boucles *)
-  find_loops co
+  List.iter (find_loops) c.dep_o
 
 let update_cell_value co v = (get co).value <- v
 
