@@ -2,6 +2,12 @@ open Debug
 open Cell
 open Sheet
 
+(* Variable pour le mode [paf] : arrête l'exécution si une boucle de
+ * dépendance est trouvée *)
+let paf = ref false
+
+exception Paf
+
 (* commandes: ce que l'utilisateur peut saisir dans un fichier.
  - La modification d'une cellule avec une nouvelle formule,
  - l'affichage d'une cellule, 
@@ -54,8 +60,11 @@ let run_command c = match c with
        update_cell_formula co f;
        recompute_cell co
      with Dependency_loop ->
-       eval_p_debug (fun () -> "Dependency loop found, reverting\n");
-       update_cell_formula co back_f
+       if !paf then raise Paf else
+         (
+           eval_p_debug (fun () -> "Dependency loop found, reverting\n");
+           update_cell_formula co back_f
+         )
 
 (* exécuter une liste de commandes *)
 let run_script cs = List.iter run_command cs
