@@ -48,13 +48,13 @@ let run_command c = match c with
            "Showing cell "
            ^ cell_name2string cn ^ ": "
          );
-       ps (cell_val2string (read_cell co)); (* <- ici ps, et pas p_debug, car on veut afficher au moins cela *)
+       ps (cell_val2string (read_cell_s !current_sheet co)); (* <- ici ps, et pas p_debug, car on veut afficher au moins cela *)
        print_newline()
      end
   | ShowAll ->
      begin
        eval_p_debug (fun () -> "Show All\n");
-       show_sheet ()
+       show_sheet !current_sheet
      end
   | SwitchTo i ->
      (

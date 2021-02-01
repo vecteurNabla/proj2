@@ -60,6 +60,7 @@ formula:
   | INT { Cst (I $1) }
   | cell { Cell (Cell.cellname_to_coord $1) }
   | operand LPAREN forlist RPAREN { Op($1,$3) }
+  | sheet LPAREN cell SEMICOL cell RPAREN {Fnc($1 - 1, cellname_to_coord $3, cellname_to_coord $5)}
 ;
 
 forlist:

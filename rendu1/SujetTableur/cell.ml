@@ -61,6 +61,7 @@ type oper = S | M | A | Max (* sum, multiply, average, maximum *)
 (* formules : une valeur, la même valeur qu'une autre cellule, une opération et
  * ses arguments *)
 type form = Cst of number | Cell of coord | Op of oper * form list
+            | Fnc of int * coord * coord
 
 (* transforme un couple de coord en l'intervalle represente *)
 let interval_to_list cos coe =
@@ -134,6 +135,9 @@ let rec form2string = function
      begin
        (oper2string o) ^ "(" ^ list2string form2string fl ^ ")"
      end
+  | Fnc(s, c1, c2) -> "s" ^ (string_of_int (s + 1)) ^ "(" ^
+                       (cell_name2string (coord_to_cellname c1)) ^ ";" ^
+                         (cell_name2string (coord_to_cellname c2)) ^ ")"
 
 let rec show_form f = ps (form2string f)
 
@@ -143,5 +147,6 @@ let form2dep f =
     | Cst _ -> acc
     | Cell co -> co :: acc
     | Op(_,t) -> List.fold_left make_list acc t
+    | Fnc(s, c1, c2) -> c1::c2::acc
   in
   make_list [] f

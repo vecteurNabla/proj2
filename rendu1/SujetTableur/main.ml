@@ -45,7 +45,8 @@ let spreadsheet () =
       flush stdout;
     )
   with Paf -> (print_string "\nPAF\n")
-  | _ -> (print_string "Erreur de saisie\n")
+     | x -> if !Debug.debug then raise x else
+             (print_string "Erreur de saisie\n")
 ;;
 
 

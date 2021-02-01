@@ -1,0 +1,12 @@
+SwitchTo s2
+A1 = SUM(A2;A3)
+SwitchTo s1
+B5=5
+B7=42
+A1=s2(B5;B7)
+ShowAll
+SwitchTo s2
+ShowAll
+SwitchTo s1
+B5 = 84
+ShowAll
