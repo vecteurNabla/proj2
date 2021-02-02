@@ -5,3 +5,8 @@ SwitchTo s1
 Show A1
 SwitchTo s2
 Show A1
+SwitchTo s1
+A1 = 237
+Show A1
+SwitchTo s2
+Show A1

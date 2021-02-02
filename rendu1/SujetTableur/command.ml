@@ -12,7 +12,7 @@ exception Paf
  - La modification d'une cellule avec une nouvelle formule,
  - l'affichage d'une cellule, 
  - l'affichage de toute la feuille *)
-type comm = Upd of cellname * form | Show of cellname | ShowAll
+type comm = Upd of cellname * form_f | Show of cellname | ShowAll
             | SwitchTo of int
 
 
@@ -43,7 +43,7 @@ let show_comm c =
 let run_command c = match c with
   | Show cn ->
      begin
-       let co = cellname_to_coord cn in
+       let co = !current_sheet, cellname_to_coord cn in
        eval_p_debug (fun () ->
            "Showing cell "
            ^ cell_name2string cn ^ ": "
@@ -62,9 +62,10 @@ let run_command c = match c with
                             ^ "\n");
        current_sheet := (i - 1)
      )
-  | Upd(cn,f) ->
-     let co = cellname_to_coord cn in
-     eval_p_debug (fun () -> "Update cell " ^ cell_name2string cn ^ " = " ^ form2string f ^ "\n");
+  | Upd(cn,form) ->
+     let f = !current_sheet, form in
+     let co = !current_sheet, cellname_to_coord cn in
+     eval_p_debug (fun () -> "Update cell " ^ cell_name2string cn ^ " = " ^ form2string form ^ "\n");
      let c = read_cell co in
      let back_f = c.formula in
      try

@@ -10,7 +10,7 @@ exception Dependency_loop
 (* si nécessaire, tapez "fst" et "snd" dans un interprete Caml pour connaître leur type *)
 (* default_cell est défini dans cell.ml (module Cell) *)
 let thesheets = Array.init 10
-  (fun i -> Array.make_matrix (fst size) (snd size) (default_cell ()))
+  (fun i -> Array.make_matrix (fst size) (snd size) (default_cell i))
               
 (* Lit la cellule de coordonnées [co] *)
 let read_cell coo =
@@ -42,6 +42,9 @@ let update_cell_formula co f =
   List.iter add_dep new_f_deps;
   (* maj de la formule *)
   c.formula <- f;
+  List.iter (fun co ->
+       Printf.fprintf stdout " %d,(%d,%d) " (fst co) (fst (snd co))
+         (snd (snd co))) new_f_deps;
   (* ici on cherche les boucles *)
   List.iter (find_loops) c.dep_o
 
@@ -67,7 +70,7 @@ let sheet_iter f =
  * une piste *)
 let init_sheet s =
   let init_cell i j =
-    let c = default_cell () in
+    let c = default_cell s in
     thesheets.(s).(i).(j) <- c
   in
   sheet_iter init_cell
@@ -104,24 +107,24 @@ let invalidate_sheet () =
 (* Plus utilisée ? *)
 
 (*    à faire : le cœur du programme *)
-let rec eval_form fo = match fo with
+let rec eval_form (sc, fo) = match fo with
   | Cst n -> n
-  | Cell (s, (p,q)) -> eval_cell (s, (p, q))
+  | Cell (p,q) -> eval_cell (sc, (p, q))
   | Op(o,fs) -> (
     match o with
-    | S -> List.fold_left (fun a b -> a +: (eval_form b)) _0 fs
-    | M -> List.fold_left (fun a b -> a *: (eval_form b)) _1 fs
+    | S -> List.fold_left (fun a b -> a +: (eval_form (sc, b))) _0 fs
+    | M -> List.fold_left (fun a b -> a *: (eval_form (sc, b))) _1 fs
     | A -> let s,n = List.fold_left (fun a b ->
-                        fst a +: (eval_form b), snd a + 1
+                        fst a +: (eval_form (sc, b)), snd a + 1
                       ) (_0, 0) fs in
           s/:(I n)
-    | Max -> List.fold_left (fun a b -> max_number a (eval_form b)) _min
+    | Max -> List.fold_left (fun a b -> max_number a (eval_form (sc, b))) _min
               fs
   )
-  | Fnc(s, c1, c2) -> let v1, v2 = eval_cell c1,
-                                  eval_cell c2 in
-                     (read_cell (s, (1,0))).formula <- Cst v1;
-                     (read_cell (s, (2,0))).formula <- Cst v2;
+  | Fnc(s, c1, c2) -> let v1, v2 = eval_cell (sc, c1),
+                                  eval_cell (sc, c2) in
+                     (read_cell (s, (1,0))).formula <- s, Cst v1;
+                     (read_cell (s, (2,0))).formula <- s, Cst v2;
                      recompute_cell (s, (0,0));
                      match (read_cell (s, (0,0))).value with
                      | Some x -> x
