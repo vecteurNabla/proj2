@@ -42,9 +42,6 @@ let update_cell_formula co f =
   List.iter add_dep new_f_deps;
   (* maj de la formule *)
   c.formula <- f;
-  List.iter (fun co ->
-       Printf.fprintf stdout " %d,(%d,%d) " (fst co) (fst (snd co))
-         (snd (snd co))) new_f_deps;
   (* ici on cherche les boucles *)
   List.iter (find_loops) c.dep_o
 
