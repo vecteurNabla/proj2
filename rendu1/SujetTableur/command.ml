@@ -48,7 +48,7 @@ let run_command c = match c with
            "Showing cell "
            ^ cell_name2string cn ^ ": "
          );
-       ps (cell_val2string (read_cell_s !current_sheet co)); (* <- ici ps, et pas p_debug, car on veut afficher au moins cela *)
+       ps (cell_val2string (read_cell co)); (* <- ici ps, et pas p_debug, car on veut afficher au moins cela *)
        print_newline()
      end
   | ShowAll ->
@@ -65,7 +65,7 @@ let run_command c = match c with
   | Upd(cn,f) ->
      let co = cellname_to_coord cn in
      eval_p_debug (fun () -> "Update cell " ^ cell_name2string cn ^ " = " ^ form2string f ^ "\n");
-     let c = get co in
+     let c = read_cell co in
      let back_f = c.formula in
      try
        update_cell_formula co f;

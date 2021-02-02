@@ -1,5 +1,8 @@
 (* les nombres avec lesquels on calcule *)
 type number = F of float | I of int
+                              
+(* La table courante *)
+let current_sheet = ref 0         
 
 let _0 = I 0
 let _1 = I 1
@@ -38,7 +41,7 @@ let string_of_number = function
 
 (* deux coordonnées, p.ex. ("B",7) *)
 type cellname = string*int
-type coord = int*int
+type coord = int * (int*int)
 
 (* les deux fonctions ci-dessous sont a reprendre, un jour ou l'autre :
  * elles ne marchent que pour des noms de colonnes ne comportant qu'un
@@ -47,8 +50,10 @@ let cellname_to_coord cn =
   if String.length (fst cn) > 1 then
     failwith "cellname_to_coord : désolé, je ne sais pas faire"
   else let column = int_of_char (fst cn).[0] - 65 in
-       (snd cn -1, column)
-let coord_to_cellname co =
+       !current_sheet, (snd cn -1, column)
+
+let coord_to_cellname coords =
+  let co = snd coords in
   let column_nbr = snd co in
   if column_nbr > 25 then
     failwith "coord_to_cellname : cela ne devrait pas se produire"
@@ -65,10 +70,12 @@ type form = Cst of number | Cell of coord | Op of oper * form list
 
 (* transforme un couple de coord en l'intervalle represente *)
 let interval_to_list cos coe =
-  let rec build_list co_cur =
-    if (fst co_cur) > (fst coe) then []
-    else if (snd co_cur) > (snd coe) then build_list ((fst co_cur) + 1,snd cos)
-    else (Cell co_cur)::( build_list (fst co_cur, (snd co_cur) + 1) )
+  let rec build_list coord_cur =
+    let co_cur = snd coord_cur in
+    if (fst co_cur) > (fst (snd coe)) then []
+    else if (snd co_cur) > (snd (snd coe))
+    then build_list (!current_sheet, ((fst co_cur) + 1, snd (snd cos)))
+    else (Cell coord_cur)::(build_list (!current_sheet, (fst co_cur, (snd co_cur) + 1)))
   in
   build_list cos
 
