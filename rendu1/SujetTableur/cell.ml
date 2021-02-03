@@ -1,5 +1,8 @@
 (* les nombres avec lesquels on calcule *)
 type number = F of float | I of int
+                              
+(* La table courante *)
+let current_sheet = ref 0         
 
 let _0 = I 0
 let _1 = I 1
@@ -38,7 +41,8 @@ let string_of_number = function
 
 (* deux coordonnées, p.ex. ("B",7) *)
 type cellname = string*int
-type coord = int*int
+type inc_coords = int*int
+type coord = int * inc_coords
 
 (* les deux fonctions ci-dessous sont a reprendre, un jour ou l'autre :
  * elles ne marchent que pour des noms de colonnes ne comportant qu'un
@@ -48,6 +52,7 @@ let cellname_to_coord cn =
     failwith "cellname_to_coord : désolé, je ne sais pas faire"
   else let column = int_of_char (fst cn).[0] - 65 in
        (snd cn -1, column)
+
 let coord_to_cellname co =
   let column_nbr = snd co in
   if column_nbr > 25 then
@@ -60,15 +65,20 @@ type oper = S | M | A | Max (* sum, multiply, average, maximum *)
 
 (* formules : une valeur, la même valeur qu'une autre cellule, une opération et
  * ses arguments *)
-type form = Cst of number | Cell of coord | Op of oper * form list
-            | Fnc of int * coord * coord
+type form_f = Cst of number | Cell of inc_coords | Op of oper * form_f list
+              | Fnc of int * inc_coords * inc_coords
 
-(* transforme un couple de coord en l'intervalle represente *)
+(* On ajoute le numéro de la feuille à une formule *)
+and form = int * form_f
+
+                     
+(* transforme un couple de inc_coords en l'intervalle represente *)
 let interval_to_list cos coe =
   let rec build_list co_cur =
     if (fst co_cur) > (fst coe) then []
-    else if (snd co_cur) > (snd coe) then build_list ((fst co_cur) + 1,snd cos)
-    else (Cell co_cur)::( build_list (fst co_cur, (snd co_cur) + 1) )
+    else if (snd co_cur) > (snd coe)
+    then build_list ((fst co_cur) + 1, snd cos)
+    else (Cell co_cur)::(build_list (fst co_cur, (snd co_cur) + 1))
   in
   build_list cos
 
@@ -88,8 +98,8 @@ type cell = {
   }
 
 (* cellule par défait : pas de valeur, et la formule correspondante est la constante 0. *)
-let default_cell () = {
-    formula = Cst _0;
+let default_cell s = {
+    formula = s, Cst _0;
     value = None;
     dep_o = []
   }
@@ -128,7 +138,7 @@ let rec show_list f = function
   | _ -> failwith "show_list: the list shouldn't be empty"
 
 (* convertir une formule en une chaîne de caractères *)
-let rec form2string = function
+let rec form2string f = match f with
   | Cell c -> cell_name2string (coord_to_cellname c)
   | Cst n -> string_of_number n
   | Op(o,fl) ->
@@ -142,11 +152,12 @@ let rec form2string = function
 let rec show_form f = ps (form2string f)
 
 (* renvoie la liste des cellules dont dépend la formule *)
-let form2dep f =
-  let rec make_list acc = function
+let form2dep fo =
+  let sc, f = fo in
+  let rec make_list acc f = match f with
     | Cst _ -> acc
-    | Cell co -> co :: acc
+    | Cell co -> (sc, co) :: acc
     | Op(_,t) -> List.fold_left make_list acc t
-    | Fnc(s, c1, c2) -> c1::c2::acc
+    | Fnc(s, c1, c2) -> (sc, c1)::(sc, c2)::acc
   in
   make_list [] f
