@@ -1,11 +1,13 @@
 # Projet : rendu 1 - Tableur
 
-Auteurs : Nicolas Nardino, Robin Jourde
+Auteurs : Robin Jourde, Nicolas Nardino
 
 Date : 3 février 2021
 
 ## Commentaires généraux
-- La présente archive contient les fichiers de codes, un `make`, un dossier `test` contenant des fichiers de test et le présent readme.
+- La présente archive contient les fichiers de codes, un `Makefile`,
+  un dossier `test` contenant des fichiers de test et le présent
+  readme.
 
 - Tout le sujet a été traité jusqu'à la 3.4 (feuilles de calculs comme des
   fonctions) incluse, et fonctionne pour les tests effectués.
