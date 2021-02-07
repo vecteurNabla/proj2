@@ -1,0 +1,191 @@
+   0  $accept : %entry% $end
+
+   1  main : expression EOL
+
+   2  expression : INT
+   3             | LPAREN expression RPAREN
+   4             | expression PLUS expression
+   5             | expression TIMES expression
+   6             | expression MINUS expression
+   7             | MINUS expression
+
+   8  %entry% : '\001' main
+
+state 0
+	$accept : . %entry% $end  (0)
+
+	'\001'  shift 1
+	.  error
+
+	%entry%  goto 2
+
+
+state 1
+	%entry% : '\001' . main  (8)
+
+	INT  shift 3
+	MINUS  shift 4
+	LPAREN  shift 5
+	.  error
+
+	main  goto 6
+	expression  goto 7
+
+
+state 2
+	$accept : %entry% . $end  (0)
+
+	$end  accept
+
+
+state 3
+	expression : INT .  (2)
+
+	.  reduce 2
+
+
+state 4
+	expression : MINUS . expression  (7)
+
+	INT  shift 3
+	MINUS  shift 4
+	LPAREN  shift 5
+	.  error
+
+	expression  goto 8
+
+
+state 5
+	expression : LPAREN . expression RPAREN  (3)
+
+	INT  shift 3
+	MINUS  shift 4
+	LPAREN  shift 5
+	.  error
+
+	expression  goto 9
+
+
+state 6
+	%entry% : '\001' main .  (8)
+
+	.  reduce 8
+
+
+state 7
+	main : expression . EOL  (1)
+	expression : expression . PLUS expression  (4)
+	expression : expression . TIMES expression  (5)
+	expression : expression . MINUS expression  (6)
+
+	PLUS  shift 10
+	TIMES  shift 11
+	MINUS  shift 12
+	EOL  shift 13
+	.  error
+
+
+state 8
+	expression : expression . PLUS expression  (4)
+	expression : expression . TIMES expression  (5)
+	expression : expression . MINUS expression  (6)
+	expression : MINUS expression .  (7)
+
+	.  reduce 7
+
+
+state 9
+	expression : LPAREN expression . RPAREN  (3)
+	expression : expression . PLUS expression  (4)
+	expression : expression . TIMES expression  (5)
+	expression : expression . MINUS expression  (6)
+
+	PLUS  shift 10
+	TIMES  shift 11
+	MINUS  shift 12
+	RPAREN  shift 14
+	.  error
+
+
+state 10
+	expression : expression PLUS . expression  (4)
+
+	INT  shift 3
+	MINUS  shift 4
+	LPAREN  shift 5
+	.  error
+
+	expression  goto 15
+
+
+state 11
+	expression : expression TIMES . expression  (5)
+
+	INT  shift 3
+	MINUS  shift 4
+	LPAREN  shift 5
+	.  error
+
+	expression  goto 16
+
+
+state 12
+	expression : expression MINUS . expression  (6)
+
+	INT  shift 3
+	MINUS  shift 4
+	LPAREN  shift 5
+	.  error
+
+	expression  goto 17
+
+
+state 13
+	main : expression EOL .  (1)
+
+	.  reduce 1
+
+
+state 14
+	expression : LPAREN expression RPAREN .  (3)
+
+	.  reduce 3
+
+
+state 15
+	expression : expression . PLUS expression  (4)
+	expression : expression PLUS expression .  (4)
+	expression : expression . TIMES expression  (5)
+	expression : expression . MINUS expression  (6)
+
+	TIMES  shift 11
+	PLUS  reduce 4
+	MINUS  reduce 4
+	RPAREN  reduce 4
+	EOL  reduce 4
+
+
+state 16
+	expression : expression . PLUS expression  (4)
+	expression : expression . TIMES expression  (5)
+	expression : expression TIMES expression .  (5)
+	expression : expression . MINUS expression  (6)
+
+	.  reduce 5
+
+
+state 17
+	expression : expression . PLUS expression  (4)
+	expression : expression . TIMES expression  (5)
+	expression : expression . MINUS expression  (6)
+	expression : expression MINUS expression .  (6)
+
+	TIMES  shift 11
+	PLUS  reduce 6
+	MINUS  reduce 6
+	RPAREN  reduce 6
+	EOL  reduce 6
+
+
+11 terminals, 4 nonterminals
+9 grammar rules, 18 states
