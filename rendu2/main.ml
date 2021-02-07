@@ -4,7 +4,7 @@ let compile e =
   begin
     affiche_expr e;
     print_newline();
-    print_int (eval e);
+    print_int (eval [] e);
     print_newline()
   end
 
@@ -24,7 +24,9 @@ let calc () =
       let result = parse () in
       (* Expr.affiche_expr result; print_newline (); flush stdout *)
 	compile result; flush stdout
-  with _ -> (print_string "erreur de saisie\n")
+  with
+  | Free_var -> print_string "variable libre dectectee : evaluation impossible\n"
+  | _ -> (print_string "erreur de saisie\n")
 ;;
 
 let _ = calc()
