@@ -25,7 +25,7 @@ let calc () =
       (* Expr.affiche_expr result; print_newline (); flush stdout *)
 	compile result; flush stdout
   with
-  | Free_var -> print_string "variable libre dectectee : evaluation impossible\n"
+  | Free_var x -> print_string ("variable "$x$" libre: evaluation impossible\n")
   | _ -> (print_string "erreur de saisie\n")
 ;;
 

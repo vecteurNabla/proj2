@@ -82,10 +82,10 @@ let rec affiche_expr e =
     end
 
 
-exception Free_var
+exception Free_var of string
 
 let rec find x = function
-  | [] -> raise Free_var
+  | [] -> raise (Free_var x)
   | h::_ when fst h = x -> snd h
   | _::t -> find x t
 
