@@ -30,5 +30,7 @@ lus les caractères *)
 | "if"                                          { IF }
 | "then"                                        { THEN }
 | "else"                                        { ELSE }
+| "true"                                        { TRUE }
+| "false"                                       { FALSE }
 | ['a'-'z']['0'-'9' 'a'-'z' 'A'-'Z']* as x      { VAR x }
 | eof                                           { raise Eof }
