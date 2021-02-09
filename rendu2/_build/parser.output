@@ -11,19 +11,20 @@
    8             | VAR
    9             | LET VAR EQUAL expression IN expression
   10             | IF bool_expression THEN expression ELSE expression
+  11             | PRINT expression
 
-  11  bool_expression : LPAREN bool_expression RPAREN
-  12                  | bool_expression AND bool_expression
-  13                  | bool_expression OR bool_expression
-  14                  | NOT bool_expression
-  15                  | expression LEQ expression
-  16                  | expression GEQ expression
-  17                  | expression LOWER expression
-  18                  | expression GREATER expression
-  19                  | TRUE
-  20                  | FALSE
+  12  bool_expression : LPAREN bool_expression RPAREN
+  13                  | bool_expression AND bool_expression
+  14                  | bool_expression OR bool_expression
+  15                  | NOT bool_expression
+  16                  | expression LEQ expression
+  17                  | expression GEQ expression
+  18                  | expression LOWER expression
+  19                  | expression GREATER expression
+  20                  | TRUE
+  21                  | FALSE
 
-  21  %entry% : '\001' main
+  22  %entry% : '\001' main
 
 state 0
 	$accept : . %entry% $end  (0)
@@ -35,7 +36,7 @@ state 0
 
 
 state 1
-	%entry% : '\001' . main  (21)
+	%entry% : '\001' . main  (22)
 
 	INT  shift 3
 	VAR  shift 4
@@ -43,10 +44,11 @@ state 1
 	IF  shift 6
 	LET  shift 7
 	LPAREN  shift 8
+	PRINT  shift 9
 	.  error
 
-	main  goto 9
-	expression  goto 10
+	main  goto 10
+	expression  goto 11
 
 
 state 2
@@ -76,9 +78,10 @@ state 5
 	IF  shift 6
 	LET  shift 7
 	LPAREN  shift 8
+	PRINT  shift 9
 	.  error
 
-	expression  goto 11
+	expression  goto 12
 
 
 state 6
@@ -87,22 +90,23 @@ state 6
 	INT  shift 3
 	VAR  shift 4
 	MINUS  shift 5
-	NOT  shift 12
-	TRUE  shift 13
-	FALSE  shift 14
+	NOT  shift 13
+	TRUE  shift 14
+	FALSE  shift 15
 	IF  shift 6
 	LET  shift 7
-	LPAREN  shift 15
+	LPAREN  shift 16
+	PRINT  shift 9
 	.  error
 
-	expression  goto 16
-	bool_expression  goto 17
+	expression  goto 17
+	bool_expression  goto 18
 
 
 state 7
 	expression : LET . VAR EQUAL expression IN expression  (9)
 
-	VAR  shift 18
+	VAR  shift 19
 	.  error
 
 
@@ -115,31 +119,47 @@ state 8
 	IF  shift 6
 	LET  shift 7
 	LPAREN  shift 8
+	PRINT  shift 9
 	.  error
 
-	expression  goto 19
+	expression  goto 20
 
 
 state 9
-	%entry% : '\001' main .  (21)
+	expression : PRINT . expression  (11)
 
-	.  reduce 21
+	INT  shift 3
+	VAR  shift 4
+	MINUS  shift 5
+	IF  shift 6
+	LET  shift 7
+	LPAREN  shift 8
+	PRINT  shift 9
+	.  error
+
+	expression  goto 21
 
 
 state 10
+	%entry% : '\001' main .  (22)
+
+	.  reduce 22
+
+
+state 11
 	main : expression . EOL  (1)
 	expression : expression . PLUS expression  (4)
 	expression : expression . TIMES expression  (5)
 	expression : expression . MINUS expression  (6)
 
-	PLUS  shift 20
-	TIMES  shift 21
-	MINUS  shift 22
-	EOL  shift 23
+	PLUS  shift 22
+	TIMES  shift 23
+	MINUS  shift 24
+	EOL  shift 25
 	.  error
 
 
-state 11
+state 12
 	expression : expression . PLUS expression  (4)
 	expression : expression . TIMES expression  (5)
 	expression : expression . MINUS expression  (6)
@@ -148,106 +168,133 @@ state 11
 	.  reduce 7
 
 
-state 12
-	bool_expression : NOT . bool_expression  (14)
+state 13
+	bool_expression : NOT . bool_expression  (15)
 
 	INT  shift 3
 	VAR  shift 4
 	MINUS  shift 5
-	NOT  shift 12
-	TRUE  shift 13
-	FALSE  shift 14
+	NOT  shift 13
+	TRUE  shift 14
+	FALSE  shift 15
 	IF  shift 6
 	LET  shift 7
-	LPAREN  shift 15
+	LPAREN  shift 16
+	PRINT  shift 9
 	.  error
 
-	expression  goto 16
-	bool_expression  goto 24
-
-
-state 13
-	bool_expression : TRUE .  (19)
-
-	.  reduce 19
+	expression  goto 17
+	bool_expression  goto 26
 
 
 state 14
-	bool_expression : FALSE .  (20)
+	bool_expression : TRUE .  (20)
 
 	.  reduce 20
 
 
 state 15
+	bool_expression : FALSE .  (21)
+
+	.  reduce 21
+
+
+state 16
 	expression : LPAREN . expression RPAREN  (3)
-	bool_expression : LPAREN . bool_expression RPAREN  (11)
+	bool_expression : LPAREN . bool_expression RPAREN  (12)
 
 	INT  shift 3
 	VAR  shift 4
 	MINUS  shift 5
-	NOT  shift 12
-	TRUE  shift 13
-	FALSE  shift 14
+	NOT  shift 13
+	TRUE  shift 14
+	FALSE  shift 15
 	IF  shift 6
 	LET  shift 7
-	LPAREN  shift 15
+	LPAREN  shift 16
+	PRINT  shift 9
 	.  error
 
-	expression  goto 25
-	bool_expression  goto 26
-
-
-state 16
-	expression : expression . PLUS expression  (4)
-	expression : expression . TIMES expression  (5)
-	expression : expression . MINUS expression  (6)
-	bool_expression : expression . LEQ expression  (15)
-	bool_expression : expression . GEQ expression  (16)
-	bool_expression : expression . LOWER expression  (17)
-	bool_expression : expression . GREATER expression  (18)
-
-	PLUS  shift 20
-	TIMES  shift 21
-	MINUS  shift 22
-	GEQ  shift 27
-	LEQ  shift 28
-	GREATER  shift 29
-	LOWER  shift 30
-	.  error
+	expression  goto 27
+	bool_expression  goto 28
 
 
 state 17
-	expression : IF bool_expression . THEN expression ELSE expression  (10)
-	bool_expression : bool_expression . AND bool_expression  (12)
-	bool_expression : bool_expression . OR bool_expression  (13)
+	expression : expression . PLUS expression  (4)
+	expression : expression . TIMES expression  (5)
+	expression : expression . MINUS expression  (6)
+	bool_expression : expression . LEQ expression  (16)
+	bool_expression : expression . GEQ expression  (17)
+	bool_expression : expression . LOWER expression  (18)
+	bool_expression : expression . GREATER expression  (19)
 
-	AND  shift 31
-	OR  shift 32
-	THEN  shift 33
+	PLUS  shift 22
+	TIMES  shift 23
+	MINUS  shift 24
+	GEQ  shift 29
+	LEQ  shift 30
+	GREATER  shift 31
+	LOWER  shift 32
 	.  error
 
 
 state 18
-	expression : LET VAR . EQUAL expression IN expression  (9)
+	expression : IF bool_expression . THEN expression ELSE expression  (10)
+	bool_expression : bool_expression . AND bool_expression  (13)
+	bool_expression : bool_expression . OR bool_expression  (14)
 
-	EQUAL  shift 34
+	AND  shift 33
+	OR  shift 34
+	THEN  shift 35
 	.  error
 
 
 state 19
+	expression : LET VAR . EQUAL expression IN expression  (9)
+
+	EQUAL  shift 36
+	.  error
+
+
+state 20
 	expression : LPAREN expression . RPAREN  (3)
 	expression : expression . PLUS expression  (4)
 	expression : expression . TIMES expression  (5)
 	expression : expression . MINUS expression  (6)
 
-	PLUS  shift 20
-	TIMES  shift 21
-	MINUS  shift 22
-	RPAREN  shift 35
+	PLUS  shift 22
+	TIMES  shift 23
+	MINUS  shift 24
+	RPAREN  shift 37
 	.  error
 
 
-state 20
+21: shift/reduce conflict (shift 22, reduce 11) on PLUS
+21: shift/reduce conflict (shift 23, reduce 11) on TIMES
+21: shift/reduce conflict (shift 24, reduce 11) on MINUS
+state 21
+	expression : expression . PLUS expression  (4)
+	expression : expression . TIMES expression  (5)
+	expression : expression . MINUS expression  (6)
+	expression : PRINT expression .  (11)
+
+	PLUS  shift 22
+	TIMES  shift 23
+	MINUS  shift 24
+	GEQ  reduce 11
+	LEQ  reduce 11
+	GREATER  reduce 11
+	LOWER  reduce 11
+	AND  reduce 11
+	OR  reduce 11
+	THEN  reduce 11
+	ELSE  reduce 11
+	IN  reduce 11
+	RPAREN  reduce 11
+	EOL  reduce 11
+
+
+state 22
 	expression : expression PLUS . expression  (4)
 
 	INT  shift 3
@@ -256,12 +303,13 @@ state 20
 	IF  shift 6
 	LET  shift 7
 	LPAREN  shift 8
+	PRINT  shift 9
 	.  error
 
-	expression  goto 36
+	expression  goto 38
 
 
-state 21
+state 23
 	expression : expression TIMES . expression  (5)
 
 	INT  shift 3
@@ -270,12 +318,13 @@ state 21
 	IF  shift 6
 	LET  shift 7
 	LPAREN  shift 8
+	PRINT  shift 9
 	.  error
 
-	expression  goto 37
+	expression  goto 39
 
 
-state 22
+state 24
 	expression : expression MINUS . expression  (6)
 
 	INT  shift 3
@@ -284,92 +333,65 @@ state 22
 	IF  shift 6
 	LET  shift 7
 	LPAREN  shift 8
-	.  error
-
-	expression  goto 38
-
-
-state 23
-	main : expression EOL .  (1)
-
-	.  reduce 1
-
-
-24: shift/reduce conflict (shift 31, reduce 14) on AND
-24: shift/reduce conflict (shift 32, reduce 14) on OR
-state 24
-	bool_expression : bool_expression . AND bool_expression  (12)
-	bool_expression : bool_expression . OR bool_expression  (13)
-	bool_expression : NOT bool_expression .  (14)
-
-	AND  shift 31
-	OR  shift 32
-	THEN  reduce 14
-	RPAREN  reduce 14
-
-
-state 25
-	expression : LPAREN expression . RPAREN  (3)
-	expression : expression . PLUS expression  (4)
-	expression : expression . TIMES expression  (5)
-	expression : expression . MINUS expression  (6)
-	bool_expression : expression . LEQ expression  (15)
-	bool_expression : expression . GEQ expression  (16)
-	bool_expression : expression . LOWER expression  (17)
-	bool_expression : expression . GREATER expression  (18)
-
-	PLUS  shift 20
-	TIMES  shift 21
-	MINUS  shift 22
-	GEQ  shift 27
-	LEQ  shift 28
-	GREATER  shift 29
-	LOWER  shift 30
-	RPAREN  shift 35
-	.  error
-
-
-state 26
-	bool_expression : LPAREN bool_expression . RPAREN  (11)
-	bool_expression : bool_expression . AND bool_expression  (12)
-	bool_expression : bool_expression . OR bool_expression  (13)
-
-	AND  shift 31
-	OR  shift 32
-	RPAREN  shift 39
-	.  error
-
-
-state 27
-	bool_expression : expression GEQ . expression  (16)
-
-	INT  shift 3
-	VAR  shift 4
-	MINUS  shift 5
-	IF  shift 6
-	LET  shift 7
-	LPAREN  shift 8
+	PRINT  shift 9
 	.  error
 
 	expression  goto 40
 
 
-state 28
-	bool_expression : expression LEQ . expression  (15)
+state 25
+	main : expression EOL .  (1)
 
-	INT  shift 3
-	VAR  shift 4
-	MINUS  shift 5
-	IF  shift 6
-	LET  shift 7
-	LPAREN  shift 8
+	.  reduce 1
+
+
+26: shift/reduce conflict (shift 33, reduce 15) on AND
+26: shift/reduce conflict (shift 34, reduce 15) on OR
+state 26
+	bool_expression : bool_expression . AND bool_expression  (13)
+	bool_expression : bool_expression . OR bool_expression  (14)
+	bool_expression : NOT bool_expression .  (15)
+
+	AND  shift 33
+	OR  shift 34
+	THEN  reduce 15
+	RPAREN  reduce 15
+
+
+state 27
+	expression : LPAREN expression . RPAREN  (3)
+	expression : expression . PLUS expression  (4)
+	expression : expression . TIMES expression  (5)
+	expression : expression . MINUS expression  (6)
+	bool_expression : expression . LEQ expression  (16)
+	bool_expression : expression . GEQ expression  (17)
+	bool_expression : expression . LOWER expression  (18)
+	bool_expression : expression . GREATER expression  (19)
+
+	PLUS  shift 22
+	TIMES  shift 23
+	MINUS  shift 24
+	GEQ  shift 29
+	LEQ  shift 30
+	GREATER  shift 31
+	LOWER  shift 32
+	RPAREN  shift 37
 	.  error
 
-	expression  goto 41
+
+state 28
+	bool_expression : LPAREN bool_expression . RPAREN  (12)
+	bool_expression : bool_expression . AND bool_expression  (13)
+	bool_expression : bool_expression . OR bool_expression  (14)
+
+	AND  shift 33
+	OR  shift 34
+	RPAREN  shift 41
+	.  error
 
 
 state 29
-	bool_expression : expression GREATER . expression  (18)
+	bool_expression : expression GEQ . expression  (17)
 
 	INT  shift 3
 	VAR  shift 4
@@ -377,13 +399,14 @@ state 29
 	IF  shift 6
 	LET  shift 7
 	LPAREN  shift 8
+	PRINT  shift 9
 	.  error
 
 	expression  goto 42
 
 
 state 30
-	bool_expression : expression LOWER . expression  (17)
+	bool_expression : expression LEQ . expression  (16)
 
 	INT  shift 3
 	VAR  shift 4
@@ -391,48 +414,81 @@ state 30
 	IF  shift 6
 	LET  shift 7
 	LPAREN  shift 8
+	PRINT  shift 9
 	.  error
 
 	expression  goto 43
 
 
 state 31
-	bool_expression : bool_expression AND . bool_expression  (12)
+	bool_expression : expression GREATER . expression  (19)
 
 	INT  shift 3
 	VAR  shift 4
 	MINUS  shift 5
-	NOT  shift 12
-	TRUE  shift 13
-	FALSE  shift 14
 	IF  shift 6
 	LET  shift 7
-	LPAREN  shift 15
+	LPAREN  shift 8
+	PRINT  shift 9
 	.  error
 
-	expression  goto 16
-	bool_expression  goto 44
+	expression  goto 44
 
 
 state 32
-	bool_expression : bool_expression OR . bool_expression  (13)
+	bool_expression : expression LOWER . expression  (18)
 
 	INT  shift 3
 	VAR  shift 4
 	MINUS  shift 5
-	NOT  shift 12
-	TRUE  shift 13
-	FALSE  shift 14
 	IF  shift 6
 	LET  shift 7
-	LPAREN  shift 15
+	LPAREN  shift 8
+	PRINT  shift 9
 	.  error
 
-	expression  goto 16
-	bool_expression  goto 45
+	expression  goto 45
 
 
 state 33
+	bool_expression : bool_expression AND . bool_expression  (13)
+
+	INT  shift 3
+	VAR  shift 4
+	MINUS  shift 5
+	NOT  shift 13
+	TRUE  shift 14
+	FALSE  shift 15
+	IF  shift 6
+	LET  shift 7
+	LPAREN  shift 16
+	PRINT  shift 9
+	.  error
+
+	expression  goto 17
+	bool_expression  goto 46
+
+
+state 34
+	bool_expression : bool_expression OR . bool_expression  (14)
+
+	INT  shift 3
+	VAR  shift 4
+	MINUS  shift 5
+	NOT  shift 13
+	TRUE  shift 14
+	FALSE  shift 15
+	IF  shift 6
+	LET  shift 7
+	LPAREN  shift 16
+	PRINT  shift 9
+	.  error
+
+	expression  goto 17
+	bool_expression  goto 47
+
+
+state 35
 	expression : IF bool_expression THEN . expression ELSE expression  (10)
 
 	INT  shift 3
@@ -441,12 +497,13 @@ state 33
 	IF  shift 6
 	LET  shift 7
 	LPAREN  shift 8
+	PRINT  shift 9
 	.  error
 
-	expression  goto 46
+	expression  goto 48
 
 
-state 34
+state 36
 	expression : LET VAR EQUAL . expression IN expression  (9)
 
 	INT  shift 3
@@ -455,24 +512,25 @@ state 34
 	IF  shift 6
 	LET  shift 7
 	LPAREN  shift 8
+	PRINT  shift 9
 	.  error
 
-	expression  goto 47
+	expression  goto 49
 
 
-state 35
+state 37
 	expression : LPAREN expression RPAREN .  (3)
 
 	.  reduce 3
 
 
-state 36
+state 38
 	expression : expression . PLUS expression  (4)
 	expression : expression PLUS expression .  (4)
 	expression : expression . TIMES expression  (5)
 	expression : expression . MINUS expression  (6)
 
-	TIMES  shift 21
+	TIMES  shift 23
 	PLUS  reduce 4
 	MINUS  reduce 4
 	GEQ  reduce 4
@@ -488,7 +546,7 @@ state 36
 	EOL  reduce 4
 
 
-state 37
+state 39
 	expression : expression . PLUS expression  (4)
 	expression : expression . TIMES expression  (5)
 	expression : expression TIMES expression .  (5)
@@ -497,13 +555,13 @@ state 37
 	.  reduce 5
 
 
-state 38
+state 40
 	expression : expression . PLUS expression  (4)
 	expression : expression . TIMES expression  (5)
 	expression : expression . MINUS expression  (6)
 	expression : expression MINUS expression .  (6)
 
-	TIMES  shift 21
+	TIMES  shift 23
 	PLUS  reduce 6
 	MINUS  reduce 6
 	GEQ  reduce 6
@@ -519,125 +577,125 @@ state 38
 	EOL  reduce 6
 
 
-state 39
-	bool_expression : LPAREN bool_expression RPAREN .  (11)
-
-	.  reduce 11
-
-
-state 40
-	expression : expression . PLUS expression  (4)
-	expression : expression . TIMES expression  (5)
-	expression : expression . MINUS expression  (6)
-	bool_expression : expression GEQ expression .  (16)
-
-	PLUS  shift 20
-	TIMES  shift 21
-	MINUS  shift 22
-	AND  reduce 16
-	OR  reduce 16
-	THEN  reduce 16
-	RPAREN  reduce 16
-
-
 state 41
-	expression : expression . PLUS expression  (4)
-	expression : expression . TIMES expression  (5)
-	expression : expression . MINUS expression  (6)
-	bool_expression : expression LEQ expression .  (15)
+	bool_expression : LPAREN bool_expression RPAREN .  (12)
 
-	PLUS  shift 20
-	TIMES  shift 21
-	MINUS  shift 22
-	AND  reduce 15
-	OR  reduce 15
-	THEN  reduce 15
-	RPAREN  reduce 15
+	.  reduce 12
 
 
 state 42
 	expression : expression . PLUS expression  (4)
 	expression : expression . TIMES expression  (5)
 	expression : expression . MINUS expression  (6)
-	bool_expression : expression GREATER expression .  (18)
+	bool_expression : expression GEQ expression .  (17)
 
-	PLUS  shift 20
-	TIMES  shift 21
-	MINUS  shift 22
-	AND  reduce 18
-	OR  reduce 18
-	THEN  reduce 18
-	RPAREN  reduce 18
-
-
-state 43
-	expression : expression . PLUS expression  (4)
-	expression : expression . TIMES expression  (5)
-	expression : expression . MINUS expression  (6)
-	bool_expression : expression LOWER expression .  (17)
-
-	PLUS  shift 20
-	TIMES  shift 21
-	MINUS  shift 22
+	PLUS  shift 22
+	TIMES  shift 23
+	MINUS  shift 24
 	AND  reduce 17
 	OR  reduce 17
 	THEN  reduce 17
 	RPAREN  reduce 17
 
 
-44: shift/reduce conflict (shift 31, reduce 12) on AND
-44: shift/reduce conflict (shift 32, reduce 12) on OR
+state 43
+	expression : expression . PLUS expression  (4)
+	expression : expression . TIMES expression  (5)
+	expression : expression . MINUS expression  (6)
+	bool_expression : expression LEQ expression .  (16)
+
+	PLUS  shift 22
+	TIMES  shift 23
+	MINUS  shift 24
+	AND  reduce 16
+	OR  reduce 16
+	THEN  reduce 16
+	RPAREN  reduce 16
+
+
 state 44
-	bool_expression : bool_expression . AND bool_expression  (12)
-	bool_expression : bool_expression AND bool_expression .  (12)
-	bool_expression : bool_expression . OR bool_expression  (13)
+	expression : expression . PLUS expression  (4)
+	expression : expression . TIMES expression  (5)
+	expression : expression . MINUS expression  (6)
+	bool_expression : expression GREATER expression .  (19)
 
-	AND  shift 31
-	OR  shift 32
-	THEN  reduce 12
-	RPAREN  reduce 12
+	PLUS  shift 22
+	TIMES  shift 23
+	MINUS  shift 24
+	AND  reduce 19
+	OR  reduce 19
+	THEN  reduce 19
+	RPAREN  reduce 19
 
 
-45: shift/reduce conflict (shift 31, reduce 13) on AND
-45: shift/reduce conflict (shift 32, reduce 13) on OR
 state 45
-	bool_expression : bool_expression . AND bool_expression  (12)
-	bool_expression : bool_expression . OR bool_expression  (13)
-	bool_expression : bool_expression OR bool_expression .  (13)
+	expression : expression . PLUS expression  (4)
+	expression : expression . TIMES expression  (5)
+	expression : expression . MINUS expression  (6)
+	bool_expression : expression LOWER expression .  (18)
 
-	AND  shift 31
-	OR  shift 32
+	PLUS  shift 22
+	TIMES  shift 23
+	MINUS  shift 24
+	AND  reduce 18
+	OR  reduce 18
+	THEN  reduce 18
+	RPAREN  reduce 18
+
+
+46: shift/reduce conflict (shift 33, reduce 13) on AND
+46: shift/reduce conflict (shift 34, reduce 13) on OR
+state 46
+	bool_expression : bool_expression . AND bool_expression  (13)
+	bool_expression : bool_expression AND bool_expression .  (13)
+	bool_expression : bool_expression . OR bool_expression  (14)
+
+	AND  shift 33
+	OR  shift 34
 	THEN  reduce 13
 	RPAREN  reduce 13
 
 
-state 46
+47: shift/reduce conflict (shift 33, reduce 14) on AND
+47: shift/reduce conflict (shift 34, reduce 14) on OR
+state 47
+	bool_expression : bool_expression . AND bool_expression  (13)
+	bool_expression : bool_expression . OR bool_expression  (14)
+	bool_expression : bool_expression OR bool_expression .  (14)
+
+	AND  shift 33
+	OR  shift 34
+	THEN  reduce 14
+	RPAREN  reduce 14
+
+
+state 48
 	expression : expression . PLUS expression  (4)
 	expression : expression . TIMES expression  (5)
 	expression : expression . MINUS expression  (6)
 	expression : IF bool_expression THEN expression . ELSE expression  (10)
 
-	PLUS  shift 20
-	TIMES  shift 21
-	MINUS  shift 22
-	ELSE  shift 48
+	PLUS  shift 22
+	TIMES  shift 23
+	MINUS  shift 24
+	ELSE  shift 50
 	.  error
 
 
-state 47
+state 49
 	expression : expression . PLUS expression  (4)
 	expression : expression . TIMES expression  (5)
 	expression : expression . MINUS expression  (6)
 	expression : LET VAR EQUAL expression . IN expression  (9)
 
-	PLUS  shift 20
-	TIMES  shift 21
-	MINUS  shift 22
-	IN  shift 49
+	PLUS  shift 22
+	TIMES  shift 23
+	MINUS  shift 24
+	IN  shift 51
 	.  error
 
 
-state 48
+state 50
 	expression : IF bool_expression THEN expression ELSE . expression  (10)
 
 	INT  shift 3
@@ -646,12 +704,13 @@ state 48
 	IF  shift 6
 	LET  shift 7
 	LPAREN  shift 8
+	PRINT  shift 9
 	.  error
 
-	expression  goto 50
+	expression  goto 52
 
 
-state 49
+state 51
 	expression : LET VAR EQUAL expression IN . expression  (9)
 
 	INT  shift 3
@@ -660,23 +719,24 @@ state 49
 	IF  shift 6
 	LET  shift 7
 	LPAREN  shift 8
+	PRINT  shift 9
 	.  error
 
-	expression  goto 51
+	expression  goto 53
 
 
-50: shift/reduce conflict (shift 20, reduce 10) on PLUS
-50: shift/reduce conflict (shift 21, reduce 10) on TIMES
-50: shift/reduce conflict (shift 22, reduce 10) on MINUS
-state 50
+52: shift/reduce conflict (shift 22, reduce 10) on PLUS
+52: shift/reduce conflict (shift 23, reduce 10) on TIMES
+52: shift/reduce conflict (shift 24, reduce 10) on MINUS
+state 52
 	expression : expression . PLUS expression  (4)
 	expression : expression . TIMES expression  (5)
 	expression : expression . MINUS expression  (6)
 	expression : IF bool_expression THEN expression ELSE expression .  (10)
 
-	PLUS  shift 20
-	TIMES  shift 21
-	MINUS  shift 22
+	PLUS  shift 22
+	TIMES  shift 23
+	MINUS  shift 24
 	GEQ  reduce 10
 	LEQ  reduce 10
 	GREATER  reduce 10
@@ -690,18 +750,18 @@ state 50
 	EOL  reduce 10
 
 
-51: shift/reduce conflict (shift 20, reduce 9) on PLUS
-51: shift/reduce conflict (shift 21, reduce 9) on TIMES
-51: shift/reduce conflict (shift 22, reduce 9) on MINUS
-state 51
+53: shift/reduce conflict (shift 22, reduce 9) on PLUS
+53: shift/reduce conflict (shift 23, reduce 9) on TIMES
+53: shift/reduce conflict (shift 24, reduce 9) on MINUS
+state 53
 	expression : expression . PLUS expression  (4)
 	expression : expression . TIMES expression  (5)
 	expression : expression . MINUS expression  (6)
 	expression : LET VAR EQUAL expression IN expression .  (9)
 
-	PLUS  shift 20
-	TIMES  shift 21
-	MINUS  shift 22
+	PLUS  shift 22
+	TIMES  shift 23
+	MINUS  shift 24
 	GEQ  reduce 9
 	LEQ  reduce 9
 	GREATER  reduce 9
@@ -715,12 +775,13 @@ state 51
 	EOL  reduce 9
 
 
-State 24 contains 2 shift/reduce conflicts.
-State 44 contains 2 shift/reduce conflicts.
-State 45 contains 2 shift/reduce conflicts.
-State 50 contains 3 shift/reduce conflicts.
-State 51 contains 3 shift/reduce conflicts.
+State 21 contains 3 shift/reduce conflicts.
+State 26 contains 2 shift/reduce conflicts.
+State 46 contains 2 shift/reduce conflicts.
+State 47 contains 2 shift/reduce conflicts.
+State 52 contains 3 shift/reduce conflicts.
+State 53 contains 3 shift/reduce conflicts.
 
 
-27 terminals, 5 nonterminals
-22 grammar rules, 52 states
+28 terminals, 5 nonterminals
+23 grammar rules, 54 states

@@ -10,6 +10,7 @@ type expr =
   | Var of var
   | Let of var*expr*expr
   | If of ebool*expr*expr
+  | Print of expr
 
 (* type pour les expressions booléennes *)
 and ebool =
@@ -64,7 +65,7 @@ let rec affiche_expr e =
     | Geq(e1,e2) -> aff_aux "Geq(" e1 e2
     | Lt(e1,e2) -> aff_aux "Lt(" e1 e2
     | Gt(e1,e2) -> aff_aux "Gt(" e1 e2
-    | Eq(e1,e2) -> aff_aux "Eq(" e1 e2 
+    | Eq(e1,e2) -> aff_aux "Eq(" e1 e2
     | True -> print_string "True"
     | False -> print_string "False"
   in
@@ -79,6 +80,11 @@ let rec affiche_expr e =
       print_string "If(" ;
       affiche_bool b ;
       aff_aux ", " e1 e2
+    end
+  | Print e -> begin
+      print_string "PrInt(" ;
+      affiche_expr e ;
+      print_string")" ;
     end
 
 
@@ -100,6 +106,12 @@ let rec eval env = function
     let v = eval env e1 in
     eval ((x,v)::env) e2
   | If(b,e1,e2) -> if eval_bool env b then eval env e1 else eval env e2
+  | Print e -> begin
+    let v = eval env e in
+    print_int v ;
+    print_newline () ;
+    v
+  end
 and eval_bool env = function
   | And(a,b) -> (eval_bool env a) && (eval_bool env b)
   | Or(a,b) -> (eval_bool env a) || (eval_bool env b)

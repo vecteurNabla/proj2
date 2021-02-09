@@ -21,6 +21,7 @@ type token =
   | IN
   | LPAREN
   | RPAREN
+  | PRINT
   | EOL
 
 val main :
