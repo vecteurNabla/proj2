@@ -32,6 +32,5 @@ lus les caractères *)
 | "else"                                        { ELSE }
 | "true"                                        { TRUE }
 | "false"                                       { FALSE }
-| "prInt"                                       { PRINT }
 | ['a'-'z']['0'-'9' 'a'-'z' 'A'-'Z']* as x      { VAR x }
 | eof                                           { raise Eof }

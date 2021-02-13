@@ -15,7 +15,6 @@
 %token IF THEN ELSE
 %token LET IN
 %token LPAREN RPAREN
-%token PRINT
 %token EOL             /* retour à la ligne */
 
 %left PLUS MINUS  /* associativité gauche: a+b+c, c'est (a+b)+c */
@@ -48,7 +47,6 @@ expression:			    /* règles de grammaire pour les expressions */
   | VAR                                                  { Var $1 }
   | LET VAR EQUAL expression IN expression               { Let($2, $4, $6) }
   | IF bool_expression THEN expression ELSE expression   { If($2, $4, $6) }
-  | PRINT expression                                     { Print($2) }
 ;
 
 bool_expression:
