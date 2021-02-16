@@ -14,7 +14,7 @@ type expr =
   | Var of var                    (* x *)
   | Let of var*expr*expr          (* let x = e1 in e2 *)
   | Fun of var*expr               (* fun x -> e *)
-  | FunRec of string*var*expr     (* rec fun x -> e *)
+  | FunRec of var*var*expr        (* rec fun x -> e *)
   | App of expr*expr              (* e1 e2 *)
 
   | Unit                          (* () *)
@@ -42,11 +42,11 @@ type expr =
 type value =
   | VInt of int
   | VFun of var*env*expr
-  | VRec of string*var*env*expr
+  | VRec of var*var*env*expr
   | VUnit
   | VRef of address
   | VBoo of bool
-  | VStdLib of (env -> value mem -> expr -> value)
+  | VStdLib of (value mem -> value -> value)
 and env = (var*value) list
 
 
@@ -124,11 +124,11 @@ let ( !. ) v = match v with
 
 let ( !? ) v = match v with
   | VBoo(a) -> a
-  | _ -> raise (Not_expected "une booléen")
+  | _ -> raise (Not_expected "une booleen")
 
 let ( !! ) v = match v with
   | VRef(a) -> a
-  | _ -> raise (Not_expected "une référence")
+  | _ -> raise (Not_expected "une reference")
 
 let rec find x = function
   | [] -> raise (Unbound x)
@@ -161,7 +161,7 @@ let rec eval env m = function
       match vfun with
       | VFun(x,env',e) -> eval ((x,varg)::env') m e
       | VRec(f,x,env',e) -> eval ((x,varg)::(f,vfun)::env') m e
-      | VStdLib(f) -> f env m e2 ;
+      | VStdLib(f) -> f m varg ;
       | _ -> raise App_not_fun
     end
 
@@ -184,12 +184,12 @@ let rec eval env m = function
   | If(b,e1,e2) -> if !?(eval env m b) then eval env m e1 else eval env m e2
   | And(a,b) -> VBoo ( !?(eval env m a) && !?(eval env m b) )
   | Or(a,b) -> VBoo ( !?(eval env m a) || !?(eval env m b) )
-  | Not b -> VBoo ( not !?(eval env m b) )
-  | Leq(e1,e2) -> VBoo ( !?(eval env m e1) <= !?(eval env m e2) )
-  | Geq(e1,e2) -> VBoo ( !?(eval env m e1) >= !?(eval env m e2) )
-  | Lt(e1,e2) -> VBoo ( !?(eval env m e1) < !?(eval env m e2) )
-  | Gt(e1,e2) -> VBoo ( !?(eval env m e1) > !?(eval env m e2) )
-  | Eq(e1,e2) -> VBoo ( !?(eval env m e1) = !?(eval env m e2) )
-  | Neq(e1,e2) -> VBoo ( !?(eval env m e1) <> !?(eval env m e2) )
+  | Not b -> VBoo ( not (!?(eval env m b)) )
+  | Leq(e1,e2) -> VBoo ( !.(eval env m e1) <= !.(eval env m e2) )
+  | Geq(e1,e2) -> VBoo ( !.(eval env m e1) >= !.(eval env m e2) )
+  | Lt(e1,e2) -> VBoo ( !.(eval env m e1) < !.(eval env m e2) )
+  | Gt(e1,e2) -> VBoo ( !.(eval env m e1) > !.(eval env m e2) )
+  | Eq(e1,e2) -> VBoo ( !.(eval env m e1) = !.(eval env m e2) )
+  | Neq(e1,e2) -> VBoo ( !.(eval env m e1) <> !.(eval env m e2) )
   | True -> VBoo true
   | False -> VBoo false
