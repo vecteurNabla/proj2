@@ -27,6 +27,7 @@
 %left EQUAL GT LT GEQ LEQ
 %left PLUS MINUS 
 %left TIMES DIV
+%left APP
 %nonassoc UMINUS NOT 			/* NOT will have to go when implemented as a fun */
 
 
@@ -46,13 +47,11 @@ expression EOF                { $1 }  /* on veut reconnaître une expression */
 
 
 expression:			    /* règles de grammaire pour les expressions */
-  | constant                                                { $1 }
-  | LPAREN expression RPAREN                                { $2 }
+  | atom_expr                                               { $1 }
   | expression PLUS expression                              { Add($1,$3) }
   | expression TIMES expression                             { Mul($1,$3) }
   | expression MINUS expression                             { Min($1,$3) }
   | MINUS expression %prec UMINUS                           { Min(Const 0, $2) }
-  | VAR                                                     { Var $1 }
   | LET let_binding IN expression %prec LET                 { Let(fst $2, snd $2, $4) }
   /* | LET REC let_binding IN expression %prec LET             { Rec(fst $2, snd $2, $4)} */
   /* il faudra revoir le type REC pour ça */
@@ -65,7 +64,13 @@ expression:			    /* règles de grammaire pour les expressions */
   | expression LT expression                                { Lt($1, $3) }
   | expression GT expression                                { Gt($1, $3) }
   | NOT expression                                          { Not $2 } /* also has to go */
+  | app_expr                                                { $1 }
 ;
+
+atom_expr:
+  | constant                                                { $1 }
+  | LPAREN expression RPAREN                                { $2 }
+  | VAR                                                     { Var $1 }
 
 constant:
   | INT                           { Const $1 }
@@ -76,3 +81,13 @@ constant:
 let_binding:
   | VAR EQUAL expression   { ($1, $3) }
   | VAR let_binding        { ($1, Fun(fst $2, snd $2)) }
+;
+
+app_expr:
+  | atom_expr argument %prec APP { App($1, $2) }
+  | app_expr argument %prec APP   { App($1, $2) }
+;
+
+argument:
+  | atom_expr { $1 }
+;
