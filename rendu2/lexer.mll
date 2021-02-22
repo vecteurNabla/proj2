@@ -4,21 +4,20 @@ open Parser;;        (* le type "token" est défini dans parser.mli *)
 exception Eof;;
 }
 
+let ident = ['a'-'z']['0'-'9' 'a'-'z' 'A'-'Z' ''' '_']* 
+
 rule token = parse    (* la "fonction" aussi s'appelle token .. *)
-| [' ' '\t']     { token lexbuf }    (* on saute les blancs et les tabulations *)
-(* token: appel récursif *)
-(* lexbuf: argument implicite
-associé au tampon où sont
-lus les caractères *)
-| '\n'                                          { EOL }
+| [' ' '\t' '\n']     	 			   		 	{ token lexbuf }
 | '+'                                           { PLUS }
 | '*'                                           { TIMES }
 | '-'                                           { MINUS }
+| '/'											{ DIV }
+| "->"											{ MAPS }
 | '='                                           { EQUAL }
 | ">="                                          { GEQ }
 | "<="                                          { LEQ }
-| '>'                                           { GREATER }
-| '<'                                           { LOWER }
+| '>'                                           { GT }
+| '<'                                           { LT }
 | "||"                                          { OR }
 | "&&"                                          { AND }
 | '('                                           { LPAREN }
@@ -26,11 +25,12 @@ lus les caractères *)
 | ['0'-'9']+ as s                               { INT (int_of_string s) }
 | "let"                                         { LET }
 | "in"                                          { IN }
+| "fun"                  						{ FUN }
 | "not"                                         { NOT }
 | "if"                                          { IF }
 | "then"                                        { THEN }
 | "else"                                        { ELSE }
 | "true"                                        { TRUE }
 | "false"                                       { FALSE }
-| ['a'-'z']['0'-'9' 'a'-'z' 'A'-'Z']* as x      { VAR x }
-| eof                                           { raise Eof }
+| ident as x     								{ VAR x }
+| eof                                           { EOF }
