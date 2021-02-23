@@ -16,7 +16,7 @@
 %token IF THEN ELSE
 %token LET IN REC
 %token FUN MAPS
-%token UNIT AFF DER  SEQ
+%token UNIT AFF DER SEQ
 %token LPAREN RPAREN
 %token EOF
 
@@ -55,6 +55,7 @@ expression:			    /* règles de grammaire pour les expressions */
   | expression PLUS expression                              { Add($1,$3) }
   | expression TIMES expression                             { Mul($1,$3) }
   | expression MINUS expression                             { Min($1,$3) }
+  | expression DIV expression                               { Div($1, $3) }
   | MINUS expression %prec UMINUS                           { Min(Const 0, $2) }
   | LET let_binding IN expression %prec LET                 { Let(fst $2, snd $2, $4) }
   | LET REC let_binding IN expression %prec LET             { Rec(fst $3, snd $3, $5)}
@@ -75,6 +76,7 @@ atom_expr:
   | LPAREN expression RPAREN                                { $2 }
   | VAR                                                     { Var $1 }
   | UNDER                                                   { Var None }
+  | DER atom_expr                                           { Der($2) }
 
 constant:
   | INT                           { Const $1 }
