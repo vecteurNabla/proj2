@@ -1,7 +1,7 @@
 open Memory
 
 (* type pour les variables *)
-type var = string
+type var = string option
 
 (* un type pour des expressions *)
 type expr =
@@ -14,7 +14,7 @@ type expr =
   | Var of var                    (* x *)
   | Let of var*expr*expr          (* let x = e1 in e2 *)
   | Fun of var*expr               (* fun x -> e *)
-  | Rec of var*var*expr*expr      (* let rec f x = e in e *)
+  | Rec of var*expr*expr          (* let rec f x = e in e *)
   | App of expr*expr              (* e1 e2 *)
 
   | Unit                          (* () *)
@@ -42,12 +42,13 @@ type expr =
 type value =
   | VInt of int
   | VFun of var*env*expr
-  | VRec of var*var*env*expr
+  | VRec of string*var*env*expr
   | VUnit
   | VRef of address
   | VBoo of bool
   | VStdLib of (value mem -> value -> value)
-and env = (var*value) list
+  | VCouple of value*value
+and env = (string*value) list
 
 
 (* fonctions d'affichage *)
@@ -61,6 +62,10 @@ let rec affiche_expr e =
 	print_string ")"
       end
   in
+  let var_to_string = function
+    | Some x -> x
+    | None -> "_"
+  in
   match e with
   | Const k -> print_int k
   | Add(e1,e2) -> aff_aux "Add(" e1 e2
@@ -68,15 +73,15 @@ let rec affiche_expr e =
   | Min(e1,e2) -> aff_aux "Min(" e1 e2
   | Div(e1,e2) -> aff_aux "Div(" e1 e2
 
-  | Var x -> print_string x
-  | Let(x,e1,e2) -> aff_aux ("Let(" ^ x  ^ ", ") e1 e2
+  | Var x -> print_string (var_to_string x)
+  | Let(x,e1,e2) -> aff_aux ("Let(" ^ (var_to_string x)  ^ ", ") e1 e2
   | Fun(x,e) -> begin
-      print_string ("Fun(" ^ x ^ ", ") ;
+      print_string ("Fun(" ^ (var_to_string x) ^ ", ") ;
       affiche_expr e ;
       print_string ")" ;
     end
-  | Rec(f,x,e, e') -> begin
-      aff_aux ("Rec(" ^ f ^ ", " ^ x ^ ", ") e e'
+  | Rec(f,e, e') -> begin
+      aff_aux ("Rec(" ^ (var_to_string f) ^  ", ") e e'
     end
   | App(e1,e2) -> aff_aux "App(" e1 e2 ;
 
@@ -128,6 +133,10 @@ let ( !! ) v = match v with
   | VRef(a) -> a
   | _ -> raise (Not_expected "une reference")
 
+let ( !& ) = function
+  | Some x -> x
+  | None -> raise (Not_expected "une variable")
+
 let rec find x = function
   | [] -> raise (Unbound x)
   | h::_ when fst h = x -> snd h
@@ -146,21 +155,30 @@ let rec eval env m = function
     else
       VInt(!.(eval env m e1) / deno)
 
-  | Var x -> find x env
-  | Let(x,e1,e2) ->
+  | Var x -> find !&x env
+  | Let(Some x,e1,e2) ->
     let v = eval env m e1 in
-    let env'  = if x = "_" then env else (x,v)::env in
-    eval env' m e2
+    eval ((x,v)::env) m e2
+  | Let(None, e1, e2) ->
+    let _ = eval env m e1 in
+    eval env m e2
   | Fun(x,e) -> VFun(x,env,e)
-  | Rec(f,x,e, e') ->
-     let v = VRec(f, x, env, e) in
-     eval ((f,v)::env) m e'
+  | Rec(Some f,e1,e2) -> begin
+      match e1 with
+      | Fun(x,e) ->
+        let v = VRec(f, x, env, e) in
+        eval ((f,v)::env) m e2
+      | _ -> raise (Not_expected "une fonction")
+    end
+  | Rec(None, _, _) -> raise (Not_expected "un nom de fonction recursive")
   | App(e1,e2) -> begin
       let varg = eval env m e2 in
       let vfun = eval env m e1 in
       match vfun with
-      | VFun(x,env',e) -> eval ((x,varg)::env') m e
-      | VRec(f,x,env',e) -> eval ((x,varg)::(f,vfun)::env') m e
+      | VFun(Some x,env',e) -> eval ((x,varg)::env') m e
+      | VFun(None,env',e) -> eval env' m e
+      | VRec(f,Some x,env',e) -> eval ((x,varg)::(f,vfun)::env') m e
+      | VRec(f,None,env',e) -> eval ((f,vfun)::env') m e
       | VStdLib(f) -> f m varg ;
       | _ -> raise App_not_fun
     end
