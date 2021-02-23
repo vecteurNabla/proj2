@@ -8,11 +8,11 @@ let ident = ['a'-'z']['0'-'9' 'a'-'z' 'A'-'Z' ''' '_']*
 
 rule token = parse    (* la "fonction" aussi s'appelle token .. *)
 | [' ' '\t' '\n']     	 			   		 	{ token lexbuf }
+| "->"											{ MAPS }
 | '+'                                           { PLUS }
 | '*'                                           { TIMES }
 | '-'                                           { MINUS }
 | '/'											{ DIV }
-| "->"											{ MAPS }
 | '='                                           { EQUAL }
 | ">="                                          { GEQ }
 | "<="                                          { LEQ }
@@ -20,10 +20,12 @@ rule token = parse    (* la "fonction" aussi s'appelle token .. *)
 | '<'                                           { LT }
 | "||"                                          { OR }
 | "&&"                                          { AND }
+| "()"											{ UNIT }
 | '('                                           { LPAREN }
 | ')'                                           { RPAREN }
 | ['0'-'9']+ as s                               { INT (int_of_string s) }
 | "let"                                         { LET }
+| "rec"											{ REC }
 | "in"                                          { IN }
 | "fun"                  						{ FUN }
 | "if"                                          { IF }
@@ -31,5 +33,9 @@ rule token = parse    (* la "fonction" aussi s'appelle token .. *)
 | "else"                                        { ELSE }
 | "true"                                        { TRUE }
 | "false"                                       { FALSE }
-| ident as x     								{ VAR x }
+| ';'											{ SEQ }
+| ":="											{ AFF }
+| '!'											{ DER }
+| '_'											{ UNDER }
+| ident as x     								{ VAR (Some x) }
 | eof                                           { EOF }
