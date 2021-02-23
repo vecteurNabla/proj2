@@ -11,7 +11,7 @@
 %token <Expr.var> VAR
 %token PLUS TIMES MINUS DIV
 %token EQUAL GEQ LEQ GT LT
-%token AND OR NOT TRUE FALSE
+%token AND OR TRUE FALSE
 %token IF THEN ELSE
 %token LET IN
 %token FUN MAPS
@@ -28,7 +28,7 @@
 %left PLUS MINUS 
 %left TIMES DIV
 %left APP
-%nonassoc UMINUS NOT 			/* NOT will have to go when implemented as a fun */
+%nonassoc UMINUS			/* NOT will have to go when implemented as a fun */
 
 
 
@@ -63,7 +63,6 @@ expression:			    /* règles de grammaire pour les expressions */
   | expression GEQ expression                               { Geq($1, $3) }
   | expression LT expression                                { Lt($1, $3) }
   | expression GT expression                                { Gt($1, $3) }
-  | NOT expression                                          { Not $2 } /* also has to go */
   | app_expr                                                { $1 }
 ;
 
@@ -79,13 +78,13 @@ constant:
 ;
 
 let_binding:
-  | VAR EQUAL expression   { ($1, $3) }
-  | VAR let_binding        { ($1, Fun(fst $2, snd $2)) }
+  | VAR EQUAL expression          { ($1, $3) }
+  | VAR let_binding               { ($1, Fun(fst $2, snd $2)) }
 ;
 
 app_expr:
-  | atom_expr argument %prec APP { App($1, $2) }
-  | app_expr argument %prec APP   { App($1, $2) }
+  | atom_expr argument %prec APP      { App($1, $2) }
+  | app_expr argument %prec APP       { App($1, $2) }
 ;
 
 argument:

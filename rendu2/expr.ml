@@ -14,7 +14,7 @@ type expr =
   | Var of var                    (* x *)
   | Let of var*expr*expr          (* let x = e1 in e2 *)
   | Fun of var*expr               (* fun x -> e *)
-  | FunRec of var*var*expr        (* rec fun x -> e *)
+  | Rec of var*var*expr*expr      (* let rec f x = e in e *)
   | App of expr*expr              (* e1 e2 *)
 
   | Unit                          (* () *)
@@ -75,10 +75,8 @@ let rec affiche_expr e =
       affiche_expr e ;
       print_string ")" ;
     end
-  | FunRec(f,x,e) -> begin
-      print_string ("FunRec(" ^ f ^ ", " ^ x ^ ", ") ;
-      affiche_expr e ;
-      print_string ")" ;
+  | Rec(f,x,e, e') -> begin
+      aff_aux ("Rec(" ^ f ^ ", " ^ x ^ ", ") e e'
     end
   | App(e1,e2) -> aff_aux "App(" e1 e2 ;
 
@@ -154,7 +152,9 @@ let rec eval env m = function
     let env'  = if x = "_" then env else (x,v)::env in
     eval env' m e2
   | Fun(x,e) -> VFun(x,env,e)
-  | FunRec(f,x,e) -> VRec(f, x, env, e)
+  | Rec(f,x,e, e') ->
+     let v = VRec(f, x, env, e) in
+     eval ((f,v)::env) m e'
   | App(e1,e2) -> begin
       let varg = eval env m e2 in
       let vfun = eval env m e1 in

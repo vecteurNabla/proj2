@@ -26,7 +26,6 @@ rule token = parse    (* la "fonction" aussi s'appelle token .. *)
 | "let"                                         { LET }
 | "in"                                          { IN }
 | "fun"                  						{ FUN }
-| "not"                                         { NOT }
 | "if"                                          { IF }
 | "then"                                        { THEN }
 | "else"                                        { ELSE }
