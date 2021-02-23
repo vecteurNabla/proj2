@@ -13,6 +13,7 @@ rule token = parse    (* la "fonction" aussi s'appelle token .. *)
 | '*'                                           { TIMES }
 | '-'                                           { MINUS }
 | '/'											{ DIV }
+| "<>"											{ NEQ }
 | '='                                           { EQUAL }
 | ">="                                          { GEQ }
 | "<="                                          { LEQ }

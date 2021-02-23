@@ -11,7 +11,7 @@
 %token <Expr.var> VAR
 %token UNDER
 %token PLUS TIMES MINUS DIV
-%token EQUAL GEQ LEQ GT LT
+%token EQUAL GEQ LEQ GT LT NEQ
 %token AND OR TRUE FALSE
 %token IF THEN ELSE
 %token LET IN REC
@@ -28,7 +28,7 @@
 %right AFF
 %right OR
 %right AND
-%left EQUAL GT LT GEQ LEQ
+%left EQUAL GT LT GEQ LEQ NEQ
 %left PLUS MINUS 
 %left TIMES DIV
 %left APP
@@ -67,6 +67,8 @@ expression:			    /* règles de grammaire pour les expressions */
   | expression GEQ expression                               { Geq($1, $3) }
   | expression LT expression                                { Lt($1, $3) }
   | expression GT expression                                { Gt($1, $3) }
+  | expression EQUAL expression                             { Eq($1, $3) }
+  | expression NEQ expression                               { Neq($1, $3) }
   | expression SEQ expression                               { Let(None, $1, $3) }
   | app_expr                                                { $1 }
 ;
