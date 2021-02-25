@@ -59,7 +59,7 @@ expression:			    /* règles de grammaire pour les expressions */
   | MINUS expression %prec UMINUS                           { Min(Const 0, $2) }
   | LET let_binding IN expression %prec LET                 { Let(fst $2, snd $2, $4) }
   | LET REC let_binding IN expression %prec LET             { Rec(fst $3, snd $3, $5)}
-  | FUN fun_expr %prec FUN                                  { $2 }
+  | FUN fun_expr                                            { $2 }
   | IF expression THEN expression ELSE expression %prec IF  { If($2, $4, $6) }
   | expression AND expression                               { And($1 ,$3) }
   | expression OR expression                                { Or($1 ,$3) }
@@ -93,7 +93,7 @@ let_binding:
 ;
 
 fun_expr:
-  | VAR MAPS expression              { Fun($1, $3) }
+  | VAR MAPS expression %prec FUN    { Fun($1, $3) }
   | VAR fun_expr                     { Fun($1, $2) }
 
 app_expr:
