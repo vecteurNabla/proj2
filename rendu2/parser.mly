@@ -1,7 +1,7 @@
 %{
     (* --- préambule: ici du code Caml --- *)
 
-    open Expr   (* rappel: dans expr.ml: 
+    open Expr   (* rappel: dans expr.ml:
                 type expr = Const of int | Add of expr*expr | Mull of expr*expr *)
 
          %}
@@ -19,17 +19,19 @@
 %token UNIT AFF DER SEQ
 %token LPAREN RPAREN
 %token EOF
-
+%token DBLSEMICOL
+%token COMA
 
 /* precedences & associativities, form lowest to highest */
 %nonassoc LET FUN
 %right SEQ
 %nonassoc IF
 %right AFF
+%left COMA
 %right OR
 %right AND
 %left EQUAL GT LT GEQ LEQ NEQ
-%left PLUS MINUS 
+%left PLUS MINUS
 %left TIMES DIV
 %left APP
 %nonassoc UMINUS
@@ -71,6 +73,8 @@ expression:			    /* règles de grammaire pour les expressions */
   | expression NEQ expression                               { Neq($1, $3) }
   | expression SEQ expression                               { Let(None, $1, $3) }
   | app_expr                                                { $1 }
+  | expression AFF expression                               { Aff($1, $3) }
+  | expression COMA expression                              { Cpl($1, $3) }
 ;
 
 atom_expr:
@@ -87,10 +91,23 @@ constant:
   | UNIT                          { Unit }
 ;
 
+
 let_binding:
-  | VAR EQUAL expression          { ($1, $3) }
-  | VAR let_binding               { ($1, Fun(fst $2, snd $2)) }
+  | pattern EQUAL expression                  { ($1, $3) }
+  | primary_pattern let_binding               { ($1, Fun(fst $2, snd $2)) }
 ;
+
+pattern:
+  | LPAREN pattern COMA pattern RPAREN         { Couple($2,$4) }
+  | pattern COMA pattern                       { Couple($1,$3) }
+  | primary_pattern                            { $1 }
+;
+
+primary_pattern:
+  | UNDER                                   { None }
+  | VAR                                     { $1 }
+;
+
 
 fun_expr:
   | VAR MAPS expression %prec FUN    { Fun($1, $3) }

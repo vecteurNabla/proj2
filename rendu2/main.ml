@@ -9,9 +9,7 @@ let compile e =
     begin
       let m = empty_mem () in
       let env = load_stdlib [] in
-      match eval env m e with
-      | VInt x -> print_int x
-      | _ -> print_string "valeur non imprimable"
+      affiche_val (eval env m e)
     end ;
     print_newline()
   end
@@ -30,14 +28,14 @@ let parse () = Parser.main Lexer.token lexbuf
 let calc () =
   try
       let result = parse () in
-      (* Expr.affiche_expr result; print_newline (); flush stdout *)
+      (* Expr.affiche_expr result; print_newline (); flush stdout ;*)
 	compile result; flush stdout
   with
   | Unbound x -> print_string (x^" indéfinie\n")
   | Div_by_Zero -> print_string "erreur: division par zero\n"
   | PrInt_not_int -> print_string "erreur: argument de la fonction prInt n'est pas entier comme attendu\n"
   | App_not_fun -> print_string "erreur: une expression qui n'est pas une fonction ne peut pas être appliquée\n"
-  | Not_expected s -> print_string ("erreur: " ^ s ^ "est attendu.e\n")
+  | Not_expected s -> print_string ("erreur: " ^ s ^ " est attendu.e\n")
   | _ -> (print_string "erreur de saisie\n")
 
 let _ = calc()
