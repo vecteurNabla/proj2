@@ -1,5 +1,8 @@
-all: 
-	ocamlbuild -yaccflag -v -lib unix main.native #on dit de fabriquer main.native
+all: main.native
+	mv main.native fouine
+
+main.native:
+	ocamlbuild -yaccflag -v -lib unix main.native
 
 byte: 
 	ocamlbuild -yaccflag -v main.byte

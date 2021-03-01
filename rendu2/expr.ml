@@ -54,21 +54,74 @@ and env = (string*value) list
 
 
 (* fonctions d'affichage *)
-let rec affiche_expr e =
+let rec var_to_string = function
+  | None -> "_"
+  | Some x -> x
+  | Couple (x,y) -> "(" ^ var_to_string x ^ "," ^ var_to_string y ^")"
+
+let rec affiche_expr_code e =
+  let aff_aux s1 a s2 b s3 =
+      begin
+	print_string s1;
+	affiche_expr_code a;
+	print_string s2;
+	affiche_expr_code b;
+	print_string s3
+      end
+  in
+  match e with
+  | Const k -> print_int k
+  | Add(e1,e2) -> aff_aux "(" e1 " + " e2 ")"
+  | Mul(e1,e2) -> aff_aux "(" e1 " * " e2 ")"
+  | Min(e1,e2) -> aff_aux "(" e1 " - " e2 ")"
+  | Div(e1,e2) -> aff_aux "(" e1 " / " e2 ")"
+
+  | Var x -> print_string (var_to_string x)
+  | Let(x,e1,e2) -> aff_aux ("let " ^ (var_to_string x)  ^ " = ") e1 " in " e2 ""
+  | Fun(x,e) -> aff_aux "fun " (Var x) " -> " e ""
+  | Rec(f,e1, e2) -> aff_aux ("let rec " ^ (var_to_string f)  ^ " = " ) e1 " in " e2 ""
+  | App(e1,e2) -> aff_aux "" e1 " (" e2 ")"
+
+  | Cpl(e1,e2) -> aff_aux "(" e1 "," e2 ")"
+
+  | Unit -> print_string "()"
+  | Seq(e1,e2) -> aff_aux "" e1 " ; " e2 ""
+  | Aff(e1,e2) -> aff_aux "" e1 " := " e2 ""
+  | Der(e) -> begin
+      print_string "!(" ;
+      affiche_expr_code e ;
+      print_string ")"
+    end
+
+  | If(b,e1,e2) -> begin
+      aff_aux "if " b " then " e1 " else " ;
+      affiche_expr_code e2
+    end
+  | And(a,b) -> aff_aux "(" a " && " b ")"
+  | Or(a,b) -> aff_aux "(" a " || " b ")"
+  | Not b -> begin
+      print_string "not " ;
+      affiche_expr_code b ;
+    end
+  | Leq(e1,e2) -> aff_aux "" e1 "<=" e2 ""
+  | Geq(e1,e2) -> aff_aux "" e1 ">=" e2 ""
+  | Lt(e1,e2) -> aff_aux "" e1 "<" e2 ""
+  | Gt(e1,e2) -> aff_aux "" e1 ">" e2 ""
+  | Eq(e1,e2) -> aff_aux "" e1 "=" e2 ""
+  | Neq(e1,e2) -> aff_aux "" e1 "<>" e2 ""
+  | True -> print_string "True"
+  | False -> print_string "False"
+
+let rec affiche_expr_tree e =
   let aff_aux s a b =
       begin
 	print_string s;
-	affiche_expr a;
+	affiche_expr_tree a;
 	print_string ", ";
-	affiche_expr b;
+	affiche_expr_tree b;
 	print_string ")"
       end
   in
-  let rec var_to_string = function
-    | None -> "_"
-    | Some x -> x
-    | Couple (x,y) -> "(" ^ var_to_string x ^ "," ^ var_to_string y ^")"
-  in 
   match e with
   | Const k -> print_int k
   | Add(e1,e2) -> aff_aux "Add(" e1 e2
@@ -80,11 +133,11 @@ let rec affiche_expr e =
   | Let(x,e1,e2) -> aff_aux ("Let(" ^ (var_to_string x)  ^ ", ") e1 e2
   | Fun(x,e) -> begin
       print_string ("Fun(" ^ (var_to_string x) ^ ", ") ;
-      affiche_expr e ;
+      affiche_expr_tree e ;
       print_string ")" ;
     end
-  | Rec(f,e, e') -> begin
-      aff_aux ("Rec(" ^ (var_to_string f) ^  ", ") e e'
+  | Rec(f,e1, e2) -> begin
+      aff_aux ("Rec(" ^ (var_to_string f) ^  ", ") e1 e2
     end
   | App(e1,e2) -> aff_aux "App(" e1 e2
 
@@ -95,20 +148,20 @@ let rec affiche_expr e =
   | Aff(e1,e2) -> aff_aux "Aff(" e1 e2
   | Der(e) -> begin
       print_string "Der(" ;
-      affiche_expr e ;
+      affiche_expr_tree e ;
       print_string ")"
     end
 
   | If(b,e1,e2) -> begin
       print_string "If(" ;
-      affiche_expr b ;
+      affiche_expr_tree b ;
       aff_aux ", " e1 e2
     end
   | And(a,b) -> aff_aux "And(" a b ;
   | Or(a,b) -> aff_aux "Or(" a b
   | Not b -> begin
       print_string "Not(" ;
-      affiche_expr b ;
+      affiche_expr_tree b ;
       print_string ")"
     end
   | Leq(e1,e2) -> aff_aux "Leq(" e1 e2
