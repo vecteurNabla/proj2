@@ -28,7 +28,6 @@ type expr =
 
   | And of expr*expr
   | Or of expr*expr
-  | Not of expr
 
   | Leq of expr*expr
   | Geq of expr*expr
@@ -99,18 +98,15 @@ let rec affiche_expr_code e =
     end
   | And(a,b) -> aff_aux "(" a " && " b ")"
   | Or(a,b) -> aff_aux "(" a " || " b ")"
-  | Not b -> begin
-      print_string "not " ;
-      affiche_expr_code b ;
-    end
+
   | Leq(e1,e2) -> aff_aux "" e1 "<=" e2 ""
   | Geq(e1,e2) -> aff_aux "" e1 ">=" e2 ""
   | Lt(e1,e2) -> aff_aux "" e1 "<" e2 ""
   | Gt(e1,e2) -> aff_aux "" e1 ">" e2 ""
   | Eq(e1,e2) -> aff_aux "" e1 "=" e2 ""
   | Neq(e1,e2) -> aff_aux "" e1 "<>" e2 ""
-  | True -> print_string "True"
-  | False -> print_string "False"
+  | True -> print_string "true"
+  | False -> print_string "false"
 
 let rec affiche_expr_tree e =
   let aff_aux s a b =
@@ -159,11 +155,7 @@ let rec affiche_expr_tree e =
     end
   | And(a,b) -> aff_aux "And(" a b ;
   | Or(a,b) -> aff_aux "Or(" a b
-  | Not b -> begin
-      print_string "Not(" ;
-      affiche_expr_tree b ;
-      print_string ")"
-    end
+
   | Leq(e1,e2) -> aff_aux "Leq(" e1 e2
   | Geq(e1,e2) -> aff_aux "Geq(" e1 e2
   | Lt(e1,e2) -> aff_aux "Lt(" e1 e2
@@ -180,8 +172,8 @@ let rec affiche_val = function
   | VStdLib _ -> print_string "<fun stdlib>"
   | VUnit -> print_string "()"
   | VRef _ -> print_string "<address>"
-  | VBoo true -> print_string "True"
-  | VBoo false -> print_string "False"
+  | VBoo true -> print_string "true"
+  | VBoo false -> print_string "false"
   | VCpl (v1,v2) ->
     print_string "(" ; affiche_val v1 ; print_string "," ; affiche_val v2 ; print_string ")"
 
@@ -285,7 +277,6 @@ let rec eval env m = function
   | If(b,e1,e2) -> if !?(eval env m b) then eval env m e1 else eval env m e2
   | And(a,b) -> VBoo ( !?(eval env m a) && !?(eval env m b) )
   | Or(a,b) -> VBoo ( !?(eval env m a) || !?(eval env m b) )
-  | Not b -> VBoo ( not (!?(eval env m b)) )
   | Leq(e1,e2) -> VBoo ( !.(eval env m e1) <= !.(eval env m e2) )
   | Geq(e1,e2) -> VBoo ( !.(eval env m e1) >= !.(eval env m e2) )
   | Lt(e1,e2) -> VBoo ( !.(eval env m e1) < !.(eval env m e2) )
