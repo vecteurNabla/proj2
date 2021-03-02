@@ -83,6 +83,7 @@ atom_expr:
   | VAR                                                     { Pattern $1 }
   | UNDER                                                   { Pattern Under }
   | DER atom_expr                                           { Der($2) }
+;
 
 constant:
   | INT                           { Const $1 }
@@ -94,11 +95,11 @@ constant:
 
 let_binding:
   | pattern EQUAL expression                  { ($1, $3) }
-  | primary_pattern let_binding               { ($1, Fun(fst $2, snd $2)) }
+  | pattern let_binding               { ($1, Fun(fst $2, snd $2)) }
 ;
 
 pattern:
-  | LPAREN pattern COMA pattern RPAREN         { Pcpl($2,$4) }
+  | LPAREN pattern RPAREN                      { $2 }
   | pattern COMA pattern                       { Pcpl($1,$3) }
   | primary_pattern                            { $1 }
 ;
