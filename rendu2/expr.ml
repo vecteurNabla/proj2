@@ -39,6 +39,8 @@ type expr =
   | True
   | False
 
+  | List of expr list
+
 (* type pour les valeurs *)
 type value =
   | VInt of int
@@ -49,6 +51,7 @@ type value =
   | VBoo of bool
   | VStdLib of (value mem -> value -> value)
   | VCpl of value*value
+  | VList of value list
 and env = (string*value) list
 
 
@@ -108,6 +111,11 @@ let rec affiche_expr_code e =
   | True -> print_string "true"
   | False -> print_string "false"
 
+  | List l -> begin
+      ignore (List.map (fun e -> (affiche_expr_code e ; print_string "::")) l ) ;
+      print_string "[]"
+    end
+
 let rec affiche_expr_tree e =
   let aff_aux s a b =
       begin
@@ -165,6 +173,12 @@ let rec affiche_expr_tree e =
   | True -> print_string "True"
   | False -> print_string "False"
 
+  | List l -> begin
+      print_string "List(" ;
+      ignore (List.map (fun e -> (affiche_expr_code e ; print_string "::")) l ) ;
+      print_string "[])"
+    end
+
 let rec affiche_val = function
   | VInt x -> print_int x
   | VFun _ -> print_string "<fun>"
@@ -176,6 +190,10 @@ let rec affiche_val = function
   | VBoo false -> print_string "false"
   | VCpl (v1,v2) ->
     print_string "(" ; affiche_val v1 ; print_string "," ; affiche_val v2 ; print_string ")"
+  | VList l -> begin
+      ignore (List.map (fun v -> (affiche_val v ; print_string "::")) l ) ;
+      print_string "[]"
+    end
 
 exception Div_by_Zero
 exception App_not_fun
@@ -249,12 +267,12 @@ let rec eval env m = function
     end
   | Rec(_, _, _) -> raise (Not_expected "un nom de fonction recursive")
   | App(e1,e2) -> begin
-      let patterng = eval env m e2 in
+      let varg = eval env m e2 in
       let vfun = eval env m e1 in
       match vfun with
-      | VFun(x,env',e)   -> eval (add_pattern_to_env env' x patterng) m e
-      | VRec(f,x,env',e) -> eval (add_pattern_to_env ((f,vfun)::env') x patterng) m e
-      | VStdLib(f) -> f m patterng ;
+      | VFun(x,env',e)   -> eval (add_pattern_to_env env' x varg) m e
+      | VRec(f,x,env',e) -> eval (add_pattern_to_env ((f,vfun)::env') x varg) m e
+      | VStdLib(f) -> f m varg ;
       | _ -> raise App_not_fun
     end
 
@@ -274,6 +292,7 @@ let rec eval env m = function
       try get_mem m a
       with Not_found -> raise (Unbound "reference")
     end
+
   | If(b,e1,e2) -> if !?(eval env m b) then eval env m e1 else eval env m e2
   | And(a,b) -> VBoo ( !?(eval env m a) && !?(eval env m b) )
   | Or(a,b) -> VBoo ( !?(eval env m a) || !?(eval env m b) )
@@ -285,3 +304,5 @@ let rec eval env m = function
   | Neq(e1,e2) -> VBoo ( !.(eval env m e1) <> !.(eval env m e2) )
   | True -> VBoo true
   | False -> VBoo false
+
+  | List l -> VList (List.map (eval env m) l)
