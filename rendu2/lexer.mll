@@ -40,5 +40,5 @@ rule token = parse    (* la "fonction" aussi s'appelle token .. *)
 | ":="											{ AFF }
 | '!'											{ DER }
 | '_'											{ UNDER }
-| ident as x     								{ VAR (Some x) }
+| ident as x     								{ VAR (Ident x) }
 | eof                                           { EOF }

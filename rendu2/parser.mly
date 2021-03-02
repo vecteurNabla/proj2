@@ -8,7 +8,7 @@
 /* description des lexèmes, ceux-ci sont décrits (par vous) dans lexer.mll */
 
 %token <int> INT
-%token <Expr.var> VAR
+%token <Expr.pattern> VAR
 %token UNDER
 %token PLUS TIMES MINUS DIV
 %token EQUAL GEQ LEQ GT LT NEQ
@@ -71,7 +71,7 @@ expression:			    /* règles de grammaire pour les expressions */
   | expression GT expression                                { Gt($1, $3) }
   | expression EQUAL expression                             { Eq($1, $3) }
   | expression NEQ expression                               { Neq($1, $3) }
-  | expression SEQ expression                               { Let(None, $1, $3) }
+  | expression SEQ expression                               { Let(Under, $1, $3) }
   | app_expr                                                { $1 }
   | expression AFF expression                               { Aff($1, $3) }
   | expression COMA expression                              { Cpl($1, $3) }
@@ -80,8 +80,8 @@ expression:			    /* règles de grammaire pour les expressions */
 atom_expr:
   | constant                                                { $1 }
   | LPAREN expression RPAREN                                { $2 }
-  | VAR                                                     { Var $1 }
-  | UNDER                                                   { Var None }
+  | VAR                                                     { Pattern $1 }
+  | UNDER                                                   { Pattern Under }
   | DER atom_expr                                           { Der($2) }
 
 constant:
@@ -98,13 +98,13 @@ let_binding:
 ;
 
 pattern:
-  | LPAREN pattern COMA pattern RPAREN         { Couple($2,$4) }
-  | pattern COMA pattern                       { Couple($1,$3) }
+  | LPAREN pattern COMA pattern RPAREN         { Pcpl($2,$4) }
+  | pattern COMA pattern                       { Pcpl($1,$3) }
   | primary_pattern                            { $1 }
 ;
 
 primary_pattern:
-  | UNDER                                   { None }
+  | UNDER                                   { Under }
   | VAR                                     { $1 }
 ;
 

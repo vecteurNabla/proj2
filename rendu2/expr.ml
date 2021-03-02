@@ -1,7 +1,7 @@
 open Memory
 
-(* type pour les variables *)
-type var = Some of string | None | Couple of var*var
+(* type pour les patterniables *)
+type pattern = Ident of string | Under | Pcpl of pattern*pattern
 
 (* un type pour des expressions *)
 type expr =
@@ -11,10 +11,10 @@ type expr =
   | Min of expr*expr              (* - *)
   | Div of expr*expr              (* + *)
 
-  | Var of var                    (* x *)
-  | Let of var*expr*expr          (* let x = e1 in e2 *)
-  | Fun of var*expr               (* fun x -> e *)
-  | Rec of var*expr*expr          (* let rec f x = e in e *)
+  | Pattern of pattern                    (* x *)
+  | Let of pattern*expr*expr          (* let x = e1 in e2 *)
+  | Fun of pattern*expr               (* fun x -> e *)
+  | Rec of pattern*expr*expr          (* let rec f x = e in e *)
   | App of expr*expr              (* e1 e2 *)
 
   | Cpl of expr*expr
@@ -42,8 +42,8 @@ type expr =
 (* type pour les valeurs *)
 type value =
   | VInt of int
-  | VFun of var*env*expr
-  | VRec of string*var*env*expr
+  | VFun of pattern*env*expr
+  | VRec of string*pattern*env*expr
   | VUnit
   | VRef of address
   | VBoo of bool
@@ -53,10 +53,10 @@ and env = (string*value) list
 
 
 (* fonctions d'affichage *)
-let rec var_to_string = function
-  | None -> "_"
-  | Some x -> x
-  | Couple (x,y) -> "(" ^ var_to_string x ^ "," ^ var_to_string y ^")"
+let rec pattern_to_string = function
+  | Under -> "_"
+  | Ident x -> x
+  | Pcpl (x,y) -> "(" ^ pattern_to_string x ^ "," ^ pattern_to_string y ^")"
 
 let rec affiche_expr_code e =
   let aff_aux s1 a s2 b s3 =
@@ -75,10 +75,10 @@ let rec affiche_expr_code e =
   | Min(e1,e2) -> aff_aux "(" e1 " - " e2 ")"
   | Div(e1,e2) -> aff_aux "(" e1 " / " e2 ")"
 
-  | Var x -> print_string (var_to_string x)
-  | Let(x,e1,e2) -> aff_aux ("let " ^ (var_to_string x)  ^ " = ") e1 " in " e2 ""
-  | Fun(x,e) -> aff_aux "fun " (Var x) " -> " e ""
-  | Rec(f,e1, e2) -> aff_aux ("let rec " ^ (var_to_string f)  ^ " = " ) e1 " in " e2 ""
+  | Pattern x -> print_string (pattern_to_string x)
+  | Let(x,e1,e2) -> aff_aux ("let " ^ (pattern_to_string x)  ^ " = ") e1 " in " e2 ""
+  | Fun(x,e) -> aff_aux "fun " (Pattern x) " -> " e ""
+  | Rec(f,e1, e2) -> aff_aux ("let rec " ^ (pattern_to_string f)  ^ " = " ) e1 " in " e2 ""
   | App(e1,e2) -> aff_aux "" e1 " (" e2 ")"
 
   | Cpl(e1,e2) -> aff_aux "(" e1 "," e2 ")"
@@ -125,15 +125,15 @@ let rec affiche_expr_tree e =
   | Min(e1,e2) -> aff_aux "Min(" e1 e2
   | Div(e1,e2) -> aff_aux "Div(" e1 e2
 
-  | Var x -> print_string (var_to_string x)
-  | Let(x,e1,e2) -> aff_aux ("Let(" ^ (var_to_string x)  ^ ", ") e1 e2
+  | Pattern x -> print_string (pattern_to_string x)
+  | Let(x,e1,e2) -> aff_aux ("Let(" ^ (pattern_to_string x)  ^ ", ") e1 e2
   | Fun(x,e) -> begin
-      print_string ("Fun(" ^ (var_to_string x) ^ ", ") ;
+      print_string ("Fun(" ^ (pattern_to_string x) ^ ", ") ;
       affiche_expr_tree e ;
       print_string ")" ;
     end
   | Rec(f,e1, e2) -> begin
-      aff_aux ("Rec(" ^ (var_to_string f) ^  ", ") e1 e2
+      aff_aux ("Rec(" ^ (pattern_to_string f) ^  ", ") e1 e2
     end
   | App(e1,e2) -> aff_aux "App(" e1 e2
 
@@ -202,20 +202,20 @@ let ( !&& ) v = match v with
   | VCpl (v1,v2) -> v2
   | _ -> raise (Not_expected "un tuple" )
 
-let rec find_var_name x = function
+let rec find_pattern_name x = function
   | [] -> raise (Unbound x)
   | h::_ when fst h = x -> snd h
-  | _::t -> find_var_name x t
+  | _::t -> find_pattern_name x t
 
 let rec find env = function
-  | None -> raise (Not_expected "une variable")
-  | Some x -> find_var_name x env
-  | Couple (x1,x2) -> VCpl(find env x1, find env x2)
+  | Under -> raise (Not_expected "une patterniable")
+  | Ident x -> find_pattern_name x env
+  | Pcpl (x1,x2) -> VCpl(find env x1, find env x2)
 
-let rec add_var_to_env env x v = match x with
-  | None -> env
-  | Some x -> (x,v)::env
-  | Couple(x,y) -> add_var_to_env (add_var_to_env env x !&v) y !&&v
+let rec add_pattern_to_env env x v = match x with
+  | Under -> env
+  | Ident x -> (x,v)::env
+  | Pcpl(x,y) -> add_pattern_to_env (add_pattern_to_env env x !&v) y !&&v
 
 (* sémantique opérationnelle à grands pas *)
 let rec eval env m = function
@@ -232,15 +232,15 @@ let rec eval env m = function
 
   | Cpl(e1,e2) -> VCpl(eval env m e1, eval env m e2)
 
-  | Var x -> find env x
+  | Pattern x -> find env x
 
   | Let(x, e1, e2) ->
     let v = eval env m e1 in
-    let env' = add_var_to_env env x v in
+    let env' = add_pattern_to_env env x v in
     eval env' m e2
 
   | Fun(x,e) -> VFun(x,env,e)
-  | Rec(Some f,e1,e2) -> begin
+  | Rec(Ident f,e1,e2) -> begin
       match e1 with
       | Fun(x,e) ->
         let v = VRec(f, x, env, e) in
@@ -249,12 +249,12 @@ let rec eval env m = function
     end
   | Rec(_, _, _) -> raise (Not_expected "un nom de fonction recursive")
   | App(e1,e2) -> begin
-      let varg = eval env m e2 in
+      let patterng = eval env m e2 in
       let vfun = eval env m e1 in
       match vfun with
-      | VFun(x,env',e)   -> eval (add_var_to_env env' x varg) m e
-      | VRec(f,x,env',e) -> eval (add_var_to_env ((f,vfun)::env') x varg) m e
-      | VStdLib(f) -> f m varg ;
+      | VFun(x,env',e)   -> eval (add_pattern_to_env env' x patterng) m e
+      | VRec(f,x,env',e) -> eval (add_pattern_to_env ((f,vfun)::env') x patterng) m e
+      | VStdLib(f) -> f m patterng ;
       | _ -> raise App_not_fun
     end
 
