@@ -1,6 +1,6 @@
 open Memory
 
-(* type pour les patterniables *)
+(* type pour les pattern *)
 type pattern = Ident of string | Under | Pcpl of pattern*pattern
 
 (* un type pour des expressions *)
@@ -202,14 +202,14 @@ let ( !&& ) v = match v with
   | VCpl (v1,v2) -> v2
   | _ -> raise (Not_expected "un tuple" )
 
-let rec find_pattern_name x = function
+let rec find_var_name x = function
   | [] -> raise (Unbound x)
   | h::_ when fst h = x -> snd h
-  | _::t -> find_pattern_name x t
+  | _::t -> find_var_name x t
 
 let rec find env = function
-  | Under -> raise (Not_expected "une patterniable")
-  | Ident x -> find_pattern_name x env
+  | Under -> raise (Not_expected "une variable")
+  | Ident x -> find_var_name x env
   | Pcpl (x1,x2) -> VCpl(find env x1, find env x2)
 
 let rec add_pattern_to_env env x v = match x with
