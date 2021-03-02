@@ -39,7 +39,8 @@ type expr =
   | True
   | False
 
-  | List of expr list
+  | Cons of expr*expr
+  | Nil
 
 (* type pour les valeurs *)
 type value =
@@ -111,10 +112,9 @@ let rec affiche_expr_code e =
   | True -> print_string "true"
   | False -> print_string "false"
 
-  | List l -> begin
-      ignore (List.map (fun e -> (affiche_expr_code e ; print_string "::")) l ) ;
-      print_string "[]"
-    end
+
+  | Nil -> print_string "[]"
+  | Cons(e1,e2) -> aff_aux "(" e1 ")::(" e2 ")"
 
 let rec affiche_expr_tree e =
   let aff_aux s a b =
@@ -173,11 +173,8 @@ let rec affiche_expr_tree e =
   | True -> print_string "True"
   | False -> print_string "False"
 
-  | List l -> begin
-      print_string "List(" ;
-      ignore (List.map (fun e -> (affiche_expr_code e ; print_string "::")) l ) ;
-      print_string "[])"
-    end
+  | Nil -> print_string "Nil"
+  | Cons(e1,e2) -> aff_aux "Cons(" e1 e2
 
 let rec affiche_val = function
   | VInt x -> print_int x
@@ -305,4 +302,10 @@ let rec eval env m = function
   | True -> VBoo true
   | False -> VBoo false
 
-  | List l -> VList (List.map (eval env m) l)
+  | Nil -> VList([])
+  | Cons(e1,e2) -> begin
+      let v = eval env m e1 in
+      match eval env m e2 with
+      | VList(t) -> VList(v::t)
+      | _ -> raise (Not_expected "une liste")
+    end
