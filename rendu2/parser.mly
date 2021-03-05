@@ -20,6 +20,7 @@
 %token LPAREN RPAREN
 %token EOF
 %token DBLSEMICOL
+%token CONS LSQB RSQB
 %token COMA
 
 /* precedences & associativities, form lowest to highest */
@@ -31,6 +32,7 @@
 %right OR
 %right AND
 %left EQUAL GT LT GEQ LEQ NEQ
+%right CONS
 %left PLUS MINUS
 %left TIMES DIV
 %left APP
@@ -54,27 +56,17 @@ expression EOF                { $1 }  /* on veut reconnaître une expression */
 
 expression:			    /* règles de grammaire pour les expressions */
   | atom_expr                                               { $1 }
-  | expression PLUS expression                              { Add($1,$3) }
-  | expression TIMES expression                             { Mul($1,$3) }
-  | expression MINUS expression                             { Min($1,$3) }
-  | expression DIV expression                               { Div($1, $3) }
+  | expr_infix                                              { $1 }
   | MINUS expression %prec UMINUS                           { Min(Const 0, $2) }
   | LET let_binding IN expression %prec LET                 { Let(fst $2, snd $2, $4) }
   | LET REC let_binding IN expression %prec LET             { Rec(fst $3, snd $3, $5)}
   | FUN fun_expr                                            { $2 }
   | IF expression THEN expression ELSE expression %prec IF  { If($2, $4, $6) }
-  | expression AND expression                               { And($1 ,$3) }
-  | expression OR expression                                { Or($1 ,$3) }
-  | expression LEQ expression                               { Leq($1, $3) }
-  | expression GEQ expression                               { Geq($1, $3) }
-  | expression LT expression                                { Lt($1, $3) }
-  | expression GT expression                                { Gt($1, $3) }
-  | expression EQUAL expression                             { Eq($1, $3) }
-  | expression NEQ expression                               { Neq($1, $3) }
-  | expression SEQ expression                               { Let(Under, $1, $3) }
   | app_expr                                                { $1 }
-  | expression AFF expression                               { Aff($1, $3) }
+  | expression SEQ expression                               { Let(Under, $1, $3) }
   | expression COMA expression                              { Cpl($1, $3) }
+  | expression AFF expression                               { Aff($1, $3) }
+  | list                                                    { $1 }
 ;
 
 atom_expr:
@@ -85,6 +77,22 @@ atom_expr:
   | DER atom_expr                                           { Der($2) }
 ;
 
+expr_infix:
+  | expression PLUS expression                    { App(App(Pattern (Ident "(+)"), $1), $3) }
+  | expression TIMES expression                   { App(App(Pattern (Ident "(*)"), $1), $3) }
+  | expression MINUS expression                   { App(App(Pattern (Ident "(-)"), $1), $3) }
+  | expression DIV expression                     { App(App(Pattern (Ident "(/)"), $1), $3) }
+  | expression AND expression                     { App(App(Pattern (Ident "(&&)"), $1), $3) }
+  | expression OR expression                      { App(App(Pattern (Ident "(||)"), $1), $3) }
+  | expression LEQ expression                     { App(App(Pattern (Ident "(<=)"), $1), $3) }
+  | expression GEQ expression                     { App(App(Pattern (Ident "(>=)"), $1), $3) }
+  | expression LT expression                      { App(App(Pattern (Ident "(<)"), $1), $3) }
+  | expression GT expression                      { App(App(Pattern (Ident "(>)"), $1), $3) }
+  | expression EQUAL expression                   { App(App(Pattern (Ident "(=)"), $1), $3) }
+  | expression NEQ expression                     { App(App(Pattern (Ident "(<>)"), $1), $3) }
+;
+
+
 constant:
   | INT                           { Const $1 }
   | TRUE                          { True }
@@ -92,6 +100,18 @@ constant:
   | UNIT                          { Unit }
 ;
 
+list:
+  | LSQB list_sh RSQB             { $2 }
+  | list_pt                       { $1 }
+;
+
+list_sh:						/* [x_1; ... x_n] */
+  | atom_expr SEQ list_sh       { Cons($1, $3) }
+  | atom_expr                   { Cons($1, Nil) }
+;
+
+list_pt:
+  | atom_expr CONS atom_expr      { Cons ($1, $3) }
 
 let_binding:
   | pattern EQUAL expression                  { ($1, $3) }

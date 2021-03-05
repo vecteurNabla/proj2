@@ -34,9 +34,12 @@ rule token = parse    (* la "fonction" aussi s'appelle token .. *)
 | "else"                                        { ELSE }
 | "true"                                        { TRUE }
 | "false"                                       { FALSE }
-| ";;"                                                                                  { DBLSEMICOL }
+| ";;"                                          { DBLSEMICOL }
+| "::"											{ CONS }
+| '['											{ LSQB }
+| ']'											{ RSQB }
 | ';'											{ SEQ }
-| ','                                                                                   { COMA }
+| ','                                           { COMA }
 | ":="											{ AFF }
 | '!'											{ DER }
 | '_'											{ UNDER }
