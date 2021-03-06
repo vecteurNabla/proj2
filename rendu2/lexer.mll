@@ -4,7 +4,7 @@ open Parser;;        (* le type "token" est défini dans parser.mli *)
 exception Eof;;
 }
 
-let ident = ['a'-'z']['0'-'9' 'a'-'z' 'A'-'Z' ''' '_']* 
+let ident = ['a'-'z']['0'-'9' 'a'-'z' 'A'-'Z' ''' '_']*
 
 rule token = parse    (* la "fonction" aussi s'appelle token .. *)
 | [' ' '\t' '\n']     	 			   		 	{ token lexbuf }
@@ -28,6 +28,9 @@ rule token = parse    (* la "fonction" aussi s'appelle token .. *)
 | "let"                                         { LET }
 | "rec"											{ REC }
 | "in"                                          { IN }
+| "match"                                       { MATCH }
+| "with"                                        { WITH }
+| "function"                                    { FUNCTION }
 | "fun"                  						{ FUN }
 | "if"                                          { IF }
 | "then"                                        { THEN }
@@ -36,12 +39,14 @@ rule token = parse    (* la "fonction" aussi s'appelle token .. *)
 | "false"                                       { FALSE }
 | ";;"                                          { DBLSEMICOL }
 | "::"											{ CONS }
+| "[]"                                                                                  { NIL }
 | '['											{ LSQB }
 | ']'											{ RSQB }
 | ';'											{ SEQ }
 | ','                                           { COMA }
 | ":="											{ AFF }
 | '!'											{ DER }
+| '|'                                                                                   { PIPE }
 | '_'											{ UNDER }
 | ident as x     								{ VAR (Ident x) }
 | eof                                           { EOF }

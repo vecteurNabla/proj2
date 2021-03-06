@@ -4,6 +4,7 @@ let showsrc = ref false
 let debug = ref false
 let tree = ref false
 let outval = ref false
+let std_input = ref false
 
 let compile e =
   let m = Memory.empty_mem () in
@@ -32,6 +33,7 @@ let calc result =
   | App_not_fun -> print_string "erreur: une expression qui n'est pas une fonction ne peut pas être appliquée\n"
   | Not_expected s -> print_string ("erreur: " ^ s ^ " est attendu.e\n")
   | StdLib.PrInt_not_int -> print_string "erreur: argument de la fonction prInt n'est pas entier comme attendu\n"
+  | Match_Failure -> print_string "erreur: matching impossible\n"
 
 
 let exec () =
@@ -45,7 +47,8 @@ let exec () =
     ("-showsrc", Arg.Set showsrc, "Affiche le programme en entrée");
     ("-debug", Arg.Set debug, "Active le mode de debuggage : affiche le programme en entrée et les sorties du programme " );
     ("-tree", Arg.Set tree, "Affiche l'arbre du programme" );
-    ("-outval", Arg.Set outval, "Affiche la valeur finale du programme" )
+    ("-outval", Arg.Set outval, "Affiche la valeur finale du programme" );
+    ("-stdin", Arg.Set std_input, "Exécute le code depuis l'entrée standard (et pas depuis un fichier)" )
   ] in
 
   Arg.parse (* ci-dessous les 3 arguments de Arg.parse : *)
@@ -55,8 +58,10 @@ let exec () =
     ""; (* le message d'accueil *)
 
   try
-    let in_file = open_in !nom_fichier in
-    let lexbuf_file = Lexing.from_channel in_file in
+    let lexbuf_file = Lexing.from_channel 
+      (if !std_input then stdin
+      else open_in !nom_fichier)
+    in
     let parse () = Parser.main Lexer.token lexbuf_file in
     let result = parse () in
     calc result
