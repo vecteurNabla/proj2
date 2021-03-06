@@ -17,6 +17,8 @@ type expr =
   | Rec of pattern*expr*expr          (* let rec f x = e in e *)
   | App of expr*expr              (* e1 e2 *)
 
+  | Match of expr * ((pattern * expr) list)
+
   | Cpl of expr*expr
 
   | Unit                          (* () *)
@@ -115,6 +117,7 @@ let rec affiche_expr_code e =
 
   | Nil -> print_string "[]"
   | Cons(e1,e2) -> aff_aux "(" e1 ")::(" e2 ")"
+  | Match(e, l) -> ()            (* PLACEHOLDER *)
 
 let rec affiche_expr_tree e =
   let aff_aux s a b =
@@ -175,6 +178,8 @@ let rec affiche_expr_tree e =
 
   | Nil -> print_string "Nil"
   | Cons(e1,e2) -> aff_aux "Cons(" e1 e2
+
+  | Match(e, l) -> ()            (* PLACEHOLDER *)
 
 let rec affiche_val = function
   | VInt x -> print_int x
@@ -309,3 +314,5 @@ let rec eval env m = function
       | VList(t) -> VList(v::t)
       | _ -> raise (Not_expected "une liste")
     end
+
+  | Match(e, l) -> VInt 42       (* PLACEHOLDER *)

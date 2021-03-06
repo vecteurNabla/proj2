@@ -22,9 +22,10 @@
 %token DBLSEMICOL
 %token CONS LSQB RSQB
 %token COMA
+%token MATCH WITH PIPE
 
 /* precedences & associativities, form lowest to highest */
-%nonassoc LET FUN
+%nonassoc LET FUN MATCH
 %right SEQ
 %nonassoc IF
 %right AFF
@@ -66,7 +67,8 @@ expression:			    /* règles de grammaire pour les expressions */
   | expression SEQ expression                               { Let(Under, $1, $3) }
   | expression COMA expression                              { Cpl($1, $3) }
   | expression AFF expression                               { Aff($1, $3) }
-  | list                                                    { $1 }
+  | MATCH expression WITH pattern_matching %prec MATCH      { Match($2, $4) }
+  | pars_list                                                    { $1 }
 ;
 
 atom_expr:
@@ -92,7 +94,6 @@ expr_infix:
   | expression NEQ expression                     { App(App(Pattern (Ident "(<>)"), $1), $3) }
 ;
 
-
 constant:
   | INT                           { Const $1 }
   | TRUE                          { True }
@@ -100,7 +101,7 @@ constant:
   | UNIT                          { Unit }
 ;
 
-list:
+pars_list:
   | LSQB list_sh RSQB             { $2 }
   | list_pt                       { $1 }
 ;
@@ -112,6 +113,7 @@ list_sh:						/* [x_1; ... x_n] */
 
 list_pt:
   | atom_expr CONS atom_expr      { Cons ($1, $3) }
+  | atom_expr CONS list_pt        { Cons ($1, $3) }
 
 let_binding:
   | pattern EQUAL expression                  { ($1, $3) }
@@ -129,6 +131,9 @@ primary_pattern:
   | VAR                                     { $1 }
 ;
 
+pattern_matching:
+  | PIPE?; p = pattern; MAPS; e = expression; r = list(PIPE pattern MAPS expression {($2, $4)})
+	{ (p, e)::r }
 
 fun_expr:
   | VAR MAPS expression %prec FUN    { Fun($1, $3) }

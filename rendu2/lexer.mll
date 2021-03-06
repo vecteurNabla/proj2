@@ -34,6 +34,9 @@ rule token = parse    (* la "fonction" aussi s'appelle token .. *)
 | "else"                                        { ELSE }
 | "true"                                        { TRUE }
 | "false"                                       { FALSE }
+| "match"										{ MATCH }
+| "with"										{ WITH }
+| '|'											{ PIPE }
 | ";;"                                          { DBLSEMICOL }
 | "::"											{ CONS }
 | '['											{ LSQB }
