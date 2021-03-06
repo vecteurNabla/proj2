@@ -15,8 +15,7 @@
 %token AND OR TRUE FALSE
 %token IF THEN ELSE
 %token LET IN REC
-%token MATCH WITH FUNCTION PIPE
-%token FUN MAPS
+%token FUN MAPS FUNCTION
 %token UNIT AFF DER SEQ
 %token LPAREN RPAREN
 %token EOF
@@ -26,7 +25,7 @@
 %token MATCH WITH PIPE
 
 /* precedences & associativities, form lowest to highest */
-%nonassoc LET FUN MATCH
+%nonassoc LET FUN MATCH FUNCTION
 %right SEQ
 %nonassoc IF
 %right AFF
@@ -69,7 +68,7 @@ expression:			    /* règles de grammaire pour les expressions */
   | expression COMA expression                              { Cpl($1, $3) }
   | expression AFF expression                               { Aff($1, $3) }
   | MATCH expression WITH pattern_matching %prec MATCH      { Match($2, $4) }
-  | pars_list                                                    { $1 }
+  | pars_list                                               { $1 }
 ;
 
 atom_expr:
@@ -137,7 +136,12 @@ primary_pattern:
 pattern_matching:
   | PIPE?; p = matchable; MAPS; e = expression; r = list(PIPE matchable MAPS expression {($2, $4)})
 	{ (p, e)::r }
+;
 
+matchable:
+  | pattern          { P $1 }
+  | constant         { C $1 }
+;
 
 fun_expr:
   | VAR MAPS expression %prec FUN    { Fun($1, $3) }
