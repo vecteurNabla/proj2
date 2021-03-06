@@ -37,8 +37,8 @@
 %right CONS
 %left PLUS MINUS
 %left TIMES DIV
-%left APP
 %nonassoc UMINUS
+%left APP
 
 
 
@@ -68,8 +68,8 @@ expression:			    /* règles de grammaire pour les expressions */
   | expression COMA expression                              { Cpl($1, $3) }
   | expression AFF expression                               { Aff($1, $3) }
   | MATCH expression WITH pattern_matching %prec MATCH      { Match($2, $4) }
-  | FUNCTION pattern_matching                               { Fun(Ident "@", Match(Pattern (Ident "@"), $2)) }
-  | pars_list                                               { $1 }
+  | FUNCTION pattern_matching %prec FUNCTION                { Fun(Ident "@", Match(Pattern (Ident "@"), $2)) }
+  | list_pt                                                 { $1 }
 ;
 
 atom_expr:
@@ -78,6 +78,7 @@ atom_expr:
   | VAR                                                     { Pattern $1 }
   | UNDER                                                   { Pattern Under }
   | DER atom_expr                                           { Der $2 }
+  | pars_list                                               { $1 }
 ;
 
 expr_infix:
@@ -105,7 +106,6 @@ constant:
 
 pars_list:
   | LSQB list_sh RSQB             { $2 }
-  | list_pt                       { $1 }
 ;
 
 list_sh:						/* [x_1; ... x_n] */
@@ -131,10 +131,12 @@ pattern:
   | pattern CONS pattern                       { PList_cons($1, $3) }
 ;
 
-
 pattern_matching:
-  | PIPE?; p = pattern; MAPS; e = expression; r = list(PIPE pattern MAPS expression {($2, $4)})
-	{ (p, e)::r }
+  | PIPE? l = separated_nonempty_list(PIPE, p = match_case { p })
+	{ l }
+;
+match_case:
+  | s = separated_pair(pattern, MAPS, expression) %prec MATCH { s }
 ;
 
 fun_expr:
