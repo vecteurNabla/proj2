@@ -135,25 +135,8 @@ primary_pattern:
 ;
 
 pattern_matching:
-  | PIPE?; p = pattern; MAPS; e = expression; r = list(PIPE pattern MAPS expression {($2, $4)})
+  | PIPE?; p = matchable; MAPS; e = expression; r = list(PIPE matchable MAPS expression {($2, $4)})
 	{ (p, e)::r }
-
-first_matching:
-  | PIPE matching                        { $2 }
-  | matching                             { $1 }
-;
-matching:
-  | matching_atom PIPE matching        { $1::$3 }
-  | matching_atom                      { $1::[] }
-;
-matching_atom:
-  |  matchable MAPS expression     %prec MATCH    { $1,$3 }
-;
-
-matchable:
-  | pattern          { P $1 }
-  | constant         { C $1 }
-;
 
 
 fun_expr:
