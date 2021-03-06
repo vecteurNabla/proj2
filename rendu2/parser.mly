@@ -15,12 +15,13 @@
 %token AND OR TRUE FALSE
 %token IF THEN ELSE
 %token LET IN REC
+%token MATCH WITH FUNCTION PIPE
 %token FUN MAPS
 %token UNIT AFF DER SEQ
 %token LPAREN RPAREN
 %token EOF
 %token DBLSEMICOL
-%token CONS LSQB RSQB
+%token CONS LSQB RSQB NIL
 %token COMA
 %token MATCH WITH PIPE
 
@@ -38,6 +39,7 @@
 %left TIMES DIV
 %left APP
 %nonassoc UMINUS
+%nonassoc VIRTPAREN
 
 
 
@@ -58,7 +60,6 @@ expression EOF                { $1 }  /* on veut reconnaître une expression */
 expression:			    /* règles de grammaire pour les expressions */
   | atom_expr                                               { $1 }
   | expr_infix                                              { $1 }
-  | MINUS expression %prec UMINUS                           { Min(Const 0, $2) }
   | LET let_binding IN expression %prec LET                 { Let(fst $2, snd $2, $4) }
   | LET REC let_binding IN expression %prec LET             { Rec(fst $3, snd $3, $5)}
   | FUN fun_expr                                            { $2 }
@@ -72,14 +73,15 @@ expression:			    /* règles de grammaire pour les expressions */
 ;
 
 atom_expr:
-  | constant                                                { $1 }
+  | constant                                                { Const $1 }
   | LPAREN expression RPAREN                                { $2 }
   | VAR                                                     { Pattern $1 }
   | UNDER                                                   { Pattern Under }
-  | DER atom_expr                                           { Der($2) }
+  | DER atom_expr                                           { Der $2 }
 ;
 
 expr_infix:
+  | MINUS expression %prec UMINUS                 { App(App(Pattern (Ident "(-)"), Const (Int 0)), $2) }
   | expression PLUS expression                    { App(App(Pattern (Ident "(+)"), $1), $3) }
   | expression TIMES expression                   { App(App(Pattern (Ident "(*)"), $1), $3) }
   | expression MINUS expression                   { App(App(Pattern (Ident "(-)"), $1), $3) }
@@ -95,10 +97,11 @@ expr_infix:
 ;
 
 constant:
-  | INT                           { Const $1 }
-  | TRUE                          { True }
-  | FALSE                         { False }
+  | INT                           { Int $1 }
+  | TRUE                          { Bool true }
+  | FALSE                         { Bool false }
   | UNIT                          { Unit }
+  | NIL                           { Nil }
 ;
 
 pars_list:
@@ -108,7 +111,7 @@ pars_list:
 
 list_sh:						/* [x_1; ... x_n] */
   | atom_expr SEQ list_sh       { Cons($1, $3) }
-  | atom_expr                   { Cons($1, Nil) }
+  | atom_expr                   { Cons($1, Const Nil) }
 ;
 
 list_pt:
@@ -134,6 +137,24 @@ primary_pattern:
 pattern_matching:
   | PIPE?; p = pattern; MAPS; e = expression; r = list(PIPE pattern MAPS expression {($2, $4)})
 	{ (p, e)::r }
+
+first_matching:
+  | PIPE matching                        { $2 }
+  | matching                             { $1 }
+;
+matching:
+  | matching_atom PIPE matching        { $1::$3 }
+  | matching_atom                      { $1::[] }
+;
+matching_atom:
+  |  matchable MAPS expression     %prec MATCH    { $1,$3 }
+;
+
+matchable:
+  | pattern          { P $1 }
+  | constant         { C $1 }
+;
+
 
 fun_expr:
   | VAR MAPS expression %prec FUN    { Fun($1, $3) }
