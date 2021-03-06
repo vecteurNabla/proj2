@@ -1,4 +1,5 @@
 open Expr
+open Affichage
 
 let showsrc = ref false
 let debug = ref false
@@ -58,7 +59,7 @@ let exec () =
     ""; (* le message d'accueil *)
 
   try
-    let lexbuf_file = Lexing.from_channel 
+    let lexbuf_file = Lexing.from_channel
       (if !std_input then stdin
       else open_in !nom_fichier)
     in

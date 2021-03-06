@@ -12,7 +12,8 @@
 %token UNDER
 %token PLUS TIMES MINUS DIV
 %token EQUAL GEQ LEQ GT LT NEQ
-%token AND OR TRUE FALSE
+%token AND OR
+%token <bool> BOOL
 %token IF THEN ELSE
 %token LET IN REC
 %token FUN MAPS FUNCTION
@@ -38,7 +39,6 @@
 %left TIMES DIV
 %left APP
 %nonassoc UMINUS
-%nonassoc VIRTPAREN
 
 
 
@@ -68,6 +68,7 @@ expression:			    /* règles de grammaire pour les expressions */
   | expression COMA expression                              { Cpl($1, $3) }
   | expression AFF expression                               { Aff($1, $3) }
   | MATCH expression WITH pattern_matching %prec MATCH      { Match($2, $4) }
+  | FUNCTION pattern_matching                               { Fun(Ident "@", Match(Pattern (Ident "@"), $2)) }
   | pars_list                                               { $1 }
 ;
 
@@ -97,8 +98,7 @@ expr_infix:
 
 constant:
   | INT                           { Int $1 }
-  | TRUE                          { Bool true }
-  | FALSE                         { Bool false }
+  | BOOL                          { Bool $1 }
   | UNIT                          { Unit }
   | NIL                           { Nil }
 ;
@@ -124,23 +124,17 @@ let_binding:
 
 pattern:
   | LPAREN pattern RPAREN                      { $2 }
-  | pattern COMA pattern                       { Pcpl($1,$3) }
-  | primary_pattern                            { $1 }
+  | VAR                                        { $1 }
+  | UNDER                                      { Under }
+  | constant                                   { PConst $1 }
+  | pattern COMA pattern                       { PCpl($1,$3) }
+  | pattern CONS pattern                       { PList_cons($1, $3) }
 ;
 
-primary_pattern:
-  | UNDER                                   { Under }
-  | VAR                                     { $1 }
-;
 
 pattern_matching:
-  | PIPE?; p = matchable; MAPS; e = expression; r = list(PIPE matchable MAPS expression {($2, $4)})
+  | PIPE?; p = pattern; MAPS; e = expression; r = list(PIPE pattern MAPS expression {($2, $4)})
 	{ (p, e)::r }
-;
-
-matchable:
-  | pattern          { P $1 }
-  | constant         { C $1 }
 ;
 
 fun_expr:
