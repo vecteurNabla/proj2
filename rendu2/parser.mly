@@ -128,6 +128,11 @@ pattern:
   | constant                                   { PConst $1 }
   | pattern COMA pattern                       { PCpl($1,$3) }
   | pattern CONS pattern                       { PList_cons($1, $3) }
+  | LSQB pattern_list_sh RSQB                  { $2 }
+;
+pattern_list_sh:						/* [x_1; ... x_n] */
+  | pattern SEQ pattern_list_sh       { PList_cons($1, $3) }
+  | pattern                   { PList_cons($1, PConst Nil) }
 ;
 
 pattern_matching:

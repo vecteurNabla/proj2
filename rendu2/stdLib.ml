@@ -53,7 +53,7 @@ let _or1 i m = function
   | VBoo j -> VBoo (i||j)
   | _ -> raise (Not_expected "un booléen")
 let _or m = function
-  | VBoo i -> VStdLib (_and1 i)
+  | VBoo i -> VStdLib (_or1 i)
   | _ -> raise (Not_expected "un booléen")
 
 let _not m = function
@@ -89,22 +89,23 @@ let _gt m = function
   | VInt i -> VStdLib (_gt1 i)
   | _ -> raise (Not_expected "un entier")
 
-let _eq1 i m = function
-  | VInt j -> VBoo (i=j)
-  | _ -> raise (Not_expected "un entier")
-let _eq m = function
-  | VInt i -> VStdLib (_eq1 i)
-  | _ -> raise (Not_expected "un entier")
 
-let _neq1 i m = function
-  | VInt j -> VBoo (i<>j)
-  | _ -> raise (Not_expected "un entier")
-let _neq m = function
-  | VInt i -> VStdLib (_neq1 i)
-  | _ -> raise (Not_expected "un entier")
+let _eq1 v m v' = VBoo (v = v')
+let _eq m v = VStdLib (_eq1 v)
+
+let _neq1 v m v' = VBoo (v <> v')
+let _neq m v = VStdLib (_neq1 v)
+
+
+let _fst m = (!&)
+
+let _snd m = (!&&)
 
 
 let load_stdlib env =
+  ("fst", VStdLib _fst)::
+  ("snd", VStdLib _snd)::
+
   ("(+)",VStdLib _add)::
   ("(*)",VStdLib _mul)::
   ("(-)",VStdLib _min)::
