@@ -46,29 +46,45 @@
 %type <Expr.expr> main     /* on _doit_ donner le type associé au point d'entrée */
 
 %%
+/* Les listes récursives à gauche */
+
+reverse_separated_nonempty_llist(separator, X):
+  x = X
+    { [ x ] }
+| xs = reverse_separated_nonempty_llist(separator, X); separator; x = X
+    { x :: xs }
+
+%inline separated_nonempty_llist(separator, X):
+   xs = reverse_separated_nonempty_llist(separator, X)  { List.rev xs }
+
 /* --- début des règles de grammaire --- */
 /* à droite, les valeurs associées */
-
 
 main:                       /* <- le point d'entrée (cf. + haut, "start") */
 expression EOF                { $1 }  /* on veut reconnaître une expression */
 ;
 
-
 expression:			    /* règles de grammaire pour les expressions */
-  | atom_expr                                               { $1 }
-  | expr_infix                                              { $1 }
+  | simpl_expr                                              { $1 }
+  | expression SEQ expression                               { Let(Under, $1, $3) }
   | LET let_binding IN expression %prec LET                 { Let(fst $2, snd $2, $4) }
   | LET REC let_binding IN expression %prec LET             { Rec(fst $3, snd $3, $5)}
+  | app_expr                                                { $1 }
   | FUN fun_expr                                            { $2 }
   | IF expression THEN expression ELSE expression %prec IF  { If($2, $4, $6) }
-  | app_expr                                                { $1 }
-  | expression SEQ expression                               { Let(Under, $1, $3) }
   | expression COMA expression                              { Cpl($1, $3) }
   | expression AFF expression                               { Aff($1, $3) }
-  /* | MATCH expression WITH pattern_matching %prec MATCH      { Match($2, $4) } */
-  /* | FUNCTION pattern_matching %prec FUNCTION                { Fun(Ident "@", Match(Pattern (Ident "@"), $2)) } */
-  | list_pt %prec CONS                                      { $1 }
+  | MATCH expression WITH pattern_matching %prec MATCH      { Match($2, $4) }
+  | FUNCTION pattern_matching %prec FUNCTION
+	{ Fun(Ident "@", Match(Pattern (Ident "@"), $2)) }
+  | l = reverse_separated_nonempty_llist(CONS, atom_expr); CONS; a = atom_expr /* il faudrait remplacer atom_expr par simpl_expr */
+	{ List.fold_left (fun x b -> Cons(b, x)) a l }
+;
+
+
+simpl_expr:
+  | atom_expr                                               { $1 }
+  | expr_infix                                              { $1 }
 ;
 
 atom_expr:
@@ -112,9 +128,9 @@ list_sh:						/* [x_1; ... x_n] */
   | atom_expr                   { Cons($1, Const Nil) }
 ;
 
-list_pt:
-  | expression CONS atom_expr      { Cons ($1, $3) }
-  | expression CONS list_pt        { Cons ($1, $3) }
+/* list_pt: */
+/*   | expression CONS atom_expr      { Cons ($1, $3) } */
+/*   | expression CONS list_pt        { Cons ($1, $3) } */
 
 let_binding:
   | pattern EQUAL expression                  { ($1, $3) }
@@ -130,13 +146,14 @@ pattern:
   | pattern CONS pattern                       { PList_cons($1, $3) }
   | LSQB pattern_list_sh RSQB                  { $2 }
 ;
+
 pattern_list_sh:						/* [x_1; ... x_n] */
   | pattern SEQ pattern_list_sh       { PList_cons($1, $3) }
-  | pattern                   { PList_cons($1, PConst Nil) }
+  | pattern                           { PList_cons($1, PConst Nil) }
 ;
 
 pattern_matching:
-  | PIPE? l = separated_nonempty_list(PIPE, p = match_case { p })
+  | PIPE? l = separated_nonempty_llist(PIPE, p = match_case { p })
 	{ l }
 ;
 match_case:
