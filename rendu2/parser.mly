@@ -1,10 +1,9 @@
 %{
     (* --- préambule: ici du code Caml --- *)
 
-    open Expr   (* rappel: dans expr.ml:
-                type expr = Const of int | Add of expr*expr | Mull of expr*expr *)
+    open Expr
 
-         %}
+%}
 /* description des lexèmes, ceux-ci sont décrits (par vous) dans lexer.mll */
 
 %token <int> INT
@@ -67,9 +66,9 @@ expression:			    /* règles de grammaire pour les expressions */
   | expression SEQ expression                               { Let(Under, $1, $3) }
   | expression COMA expression                              { Cpl($1, $3) }
   | expression AFF expression                               { Aff($1, $3) }
-  | MATCH expression WITH pattern_matching %prec MATCH      { Match($2, $4) }
-  | FUNCTION pattern_matching %prec FUNCTION                { Fun(Ident "@", Match(Pattern (Ident "@"), $2)) }
-  | list_pt                                                 { $1 }
+  /* | MATCH expression WITH pattern_matching %prec MATCH      { Match($2, $4) } */
+  /* | FUNCTION pattern_matching %prec FUNCTION                { Fun(Ident "@", Match(Pattern (Ident "@"), $2)) } */
+  | list_pt %prec CONS                                      { $1 }
 ;
 
 atom_expr:
@@ -114,8 +113,8 @@ list_sh:						/* [x_1; ... x_n] */
 ;
 
 list_pt:
-  | atom_expr CONS atom_expr      { Cons ($1, $3) }
-  | atom_expr CONS list_pt        { Cons ($1, $3) }
+  | expression CONS atom_expr      { Cons ($1, $3) }
+  | expression CONS list_pt        { Cons ($1, $3) }
 
 let_binding:
   | pattern EQUAL expression                  { ($1, $3) }
