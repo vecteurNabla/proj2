@@ -29,6 +29,7 @@
 %right SEQ
 %nonassoc IF
 %right AFF
+%left PIPE
 %left COMA
 %right OR
 %right AND
@@ -42,7 +43,7 @@
 
 
 %start main             /* "start" signale le point d'entrée: */
-/* c'est ici main, qui est défini plus bas */
+                        /* c'est ici main, qui est défini plus bas */
 %type <Expr.expr> main     /* on _doit_ donner le type associé au point d'entrée */
 
 %%
@@ -57,11 +58,23 @@ reverse_separated_nonempty_llist(separator, X):
 %inline separated_nonempty_llist(separator, X):
    xs = reverse_separated_nonempty_llist(separator, X)  { List.rev xs }
 
+reversed_preceded_or_separated_nonempty_llist(delimiter, X):
+  ioption(delimiter) x = X
+    { [x] }
+| xs = reversed_preceded_or_separated_nonempty_llist(delimiter, X)
+  delimiter
+  x = X
+    { x :: xs }
+
+%inline preceded_or_separated_nonempty_llist(delimiter, X):
+  xs = rev(reversed_preceded_or_separated_nonempty_llist(delimiter, X))
+    { xs }
+
 /* --- début des règles de grammaire --- */
 /* à droite, les valeurs associées */
 
 main:                       /* <- le point d'entrée (cf. + haut, "start") */
-expression EOF                { $1 }  /* on veut reconnaître une expression */
+expression EOF      { $1 }  /* on veut reconnaître une expression */
 ;
 
 expression:			    /* règles de grammaire pour les expressions */
@@ -75,7 +88,7 @@ expression:			    /* règles de grammaire pour les expressions */
   | expression COMA expression                              { Cpl($1, $3) }
   | expression AFF expression                               { Aff($1, $3) }
   | MATCH expression WITH pattern_matching %prec MATCH      { Match($2, $4) }
-  | FUNCTION pattern_matching %prec FUNCTION
+  | FUNCTION pattern_matching
 	{ Fun(Ident "@", Match(Pattern (Ident "@"), $2)) }
   | l = reverse_separated_nonempty_llist(CONS, atom_expr); CONS; a = atom_expr /* il faudrait remplacer atom_expr par simpl_expr */
 	{ List.fold_left (fun x b -> Cons(b, x)) a l }
@@ -97,20 +110,24 @@ atom_expr:
 ;
 
 expr_infix:
-  | MINUS expression %prec UMINUS                 { App(App(Pattern (Ident "(-)"), Const (Int 0)), $2) }
-  | expression PLUS expression                    { App(App(Pattern (Ident "(+)"), $1), $3) }
-  | expression TIMES expression                   { App(App(Pattern (Ident "(*)"), $1), $3) }
-  | expression MINUS expression                   { App(App(Pattern (Ident "(-)"), $1), $3) }
-  | expression DIV expression                     { App(App(Pattern (Ident "(/)"), $1), $3) }
-  | expression AND expression                     { App(App(Pattern (Ident "(&&)"), $1), $3) }
-  | expression OR expression                      { App(App(Pattern (Ident "(||)"), $1), $3) }
-  | expression LEQ expression                     { App(App(Pattern (Ident "(<=)"), $1), $3) }
-  | expression GEQ expression                     { App(App(Pattern (Ident "(>=)"), $1), $3) }
-  | expression LT expression                      { App(App(Pattern (Ident "(<)"), $1), $3) }
-  | expression GT expression                      { App(App(Pattern (Ident "(>)"), $1), $3) }
-  | expression EQUAL expression                   { App(App(Pattern (Ident "(=)"), $1), $3) }
-  | expression NEQ expression                     { App(App(Pattern (Ident "(<>)"), $1), $3) }
+  | MINUS expression %prec UMINUS         { App(App(Pattern (Ident "(-)"), Const (Int 0)), $2) }
+  | expression; o = op; expression        { App(App(Pattern (Ident o), $1), $3) }
 ;
+%inline op:
+  | PLUS  {"(+)"}
+  |	TIMES {"(*)"}
+  |	MINUS {"(-)"}
+  |	DIV	  {"(/)"}
+  |	AND	  {"(&&)"}
+  |	OR	  {"(||)"}
+  |	LEQ	  {"(<=)"}
+  |	GEQ	  {"(>=)"}
+  |	LT	  {"(<)"}
+  |	GT	  {"(>)"}
+  |	EQUAL {"(=)"}
+  |	NEQ	  {"(<>)"}
+;
+
 
 constant:
   | INT                           { Int $1 }
@@ -124,8 +141,8 @@ pars_list:
 ;
 
 list_sh:						/* [x_1; ... x_n] */
-  | atom_expr SEQ list_sh       { Cons($1, $3) }
-  | atom_expr                   { Cons($1, Const Nil) }
+  | l = reverse_separated_nonempty_llist(SEQ, atom_expr)
+	{ List.fold_left (fun x b -> Cons(b, x)) (Const Nil) l }
 ;
 
 /* list_pt: */
@@ -153,11 +170,11 @@ pattern_list_sh:						/* [x_1; ... x_n] */
 ;
 
 pattern_matching:
-  | PIPE? l = separated_nonempty_llist(PIPE, p = match_case { p })
+  | l = preceded_or_separated_nonempty_llist(PIPE, match_case)
 	{ l }
 ;
 match_case:
-  | s = separated_pair(pattern, MAPS, expression) %prec MATCH { s }
+  | s = separated_pair(pattern, MAPS, atom_expr) %prec PIPE { s }
 ;
 
 fun_expr:
