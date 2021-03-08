@@ -174,7 +174,7 @@ pattern_matching:
 	{ l }
 ;
 match_case:
-  | s = separated_pair(pattern, MAPS, expression) %prec PIPE { s }
+  | s = separated_pair(pattern, MAPS, atom_expr) %prec PIPE { s }
 ;
 
 fun_expr:
