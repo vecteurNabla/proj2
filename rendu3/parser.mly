@@ -25,6 +25,7 @@
 %token MATCH WITH PIPE
 
 /* precedences & associativities, form lowest to highest */
+%nonassoc IN
 %nonassoc LET FUN MATCH FUNCTION
 %right SEQ
 %nonassoc IF
@@ -77,23 +78,44 @@ main:                       /* <- le point d'entrée (cf. + haut, "start") */
 expression EOF      { $1 }  /* on veut reconnaître une expression */
 ;
 
+
+surface:
+    e = expression { e }
+  | p = separated_nonempty_llist(DBLSEMICOL, let_decs); DBLSEMICOL; e = expression
+	{ List.fold_left (fun x l ->
+					   let l' = fst l in
+					   if snd l then
+						 Rec(fst l', snd l', x)
+					   else
+						 Let(fst l', snd l', x)) e p }
+;
+
+
 expression:			    /* règles de grammaire pour les expressions */
   | simpl_expr                                              { $1 }
   | expression SEQ expression                               { Let(Under, $1, $3) }
-  | LET let_binding IN expression %prec LET                 { Let(fst $2, snd $2, $4) }
-  | LET REC let_binding IN expression %prec LET             { Rec(fst $3, snd $3, $5)}
+  | l = let_decs IN e = expression
+	{ let l' = fst l in
+	  if snd l then
+	    Rec(fst l', snd l', e)
+	  else
+	    Let(fst l', snd l', e) }
   | app_expr                                                { $1 }
   | FUN fun_expr                                            { $2 }
   | IF expression THEN expression ELSE expression %prec IF  { If($2, $4, $6) }
   | expression COMA expression                              { Cpl($1, $3) }
   | expression AFF expression                               { Aff($1, $3) }
-  | MATCH expression WITH pattern_matching %prec MATCH      { Match($2, $4) }
+  | MATCH expression WITH pattern_matching                  { Match($2, $4) }
   | FUNCTION pattern_matching
 	{ Fun(Ident "@", Match(Pattern (Ident "@"), $2)) }
   | l = reverse_separated_nonempty_llist(CONS, atom_expr); CONS; a = atom_expr /* il faudrait remplacer atom_expr par simpl_expr */
 	{ List.fold_left (fun x b -> Cons(b, x)) a l }
 ;
 
+let_decs:
+  | LET let_binding %prec LET                     { ($2, false) }
+  | LET REC let_binding %prec LET                 { ($3, true)}
+;
 
 simpl_expr:
   | atom_expr                                               { $1 }
