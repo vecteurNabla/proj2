@@ -11,7 +11,7 @@ let const_to_string = function
 let rec pattern_to_string = function
   | Under -> "_"
   | Ident x -> x
-  | PConst k -> const_to_string k
+  | PConst c -> const_to_string c
   | PCpl (x,y) -> "(" ^ pattern_to_string x ^ "," ^ pattern_to_string y ^")"
   | PList_cons (x,y) -> pattern_to_string x ^ "::" ^ pattern_to_string y
 
@@ -26,7 +26,7 @@ let rec affiche_expr_code e =
       end
   in
   match e with
-  | Const k -> print_string (const_to_string k)
+  | Const c -> print_string (const_to_string c)
 
   | Pattern x -> print_string (pattern_to_string x)
   | Let(x,e1,e2) -> aff_aux ("let " ^ (pattern_to_string x)  ^ " = ") e1 " in " e2 ""
@@ -64,6 +64,14 @@ let rec affiche_expr_code e =
 
   | Cons(e1,e2) -> aff_aux "(" e1 ")::(" e2 ")"
 
+  | Try(e1,x,e2) -> aff_aux "try " e1 (" with E " ^ pattern_to_string x ^ " -> ") e2 ""
+
+  | Raise e -> begin
+      print_string "raise E (" ;
+      affiche_expr_code e ;
+      print_string ")"
+    end
+
 let rec affiche_expr_tree e =
   let aff_aux s a b =
       begin
@@ -75,7 +83,7 @@ let rec affiche_expr_tree e =
       end
   in
   match e with
-  | Const k -> print_string (const_to_string k)
+  | Const c -> print_string (const_to_string c)
 
   | Pattern x -> print_string (pattern_to_string x)
   | Let(x,e1,e2) -> aff_aux ("Let(" ^ (pattern_to_string x)  ^ ", ") e1 e2
@@ -120,6 +128,20 @@ let rec affiche_expr_tree e =
     end
 
   | Cons(e1,e2) -> aff_aux "Cons(" e1 e2
+
+  | Try(e1,p,e2) -> begin
+      print_string "Try(" ;
+      affiche_expr_tree e1 ;
+      print_string (", "^ pattern_to_string p) ;
+      affiche_expr_tree e2 ;
+      print_string ")"
+    end
+
+  | Raise e -> begin
+      print_string "Raise(" ;
+      affiche_expr_code e ;
+      print_string ")"
+    end
 
 let rec affiche_val = function
   | VInt x -> print_int x

@@ -10,7 +10,8 @@ let std_input = ref false
 let compile e =
   let m = Memory.empty_mem () in
   let env = StdLib.load_stdlib [] in
-  let v = eval env m e in
+  let k_id v = v in
+  let v = eval env m k_id e in
   if !outval then begin
     affiche_val v ; print_newline ()
   end
