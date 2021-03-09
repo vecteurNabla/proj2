@@ -39,6 +39,9 @@ rule token = parse    (* la "fonction" aussi s'appelle token .. *)
 | "false"                                    { BOOL false }
 | "begin"                                    { LPAREN }
 | "end"                                      { RPAREN }
+| "raise"									 { RAISE }
+| "try"										 { TRY }
+| 'E'										 { E }											 
 | '|'                                        { PIPE }
 | ";;"                                       { DBLSEMICOL }
 | "::"                                       { CONS }

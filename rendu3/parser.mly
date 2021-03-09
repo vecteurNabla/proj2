@@ -23,6 +23,7 @@
 %token CONS LSQB RSQB NIL
 %token COMA
 %token MATCH WITH PIPE
+%token RAISE TRY E
 
 /* precedences & associativities, form lowest to highest */
 %nonassoc IN
@@ -32,6 +33,7 @@
 %right AFF
 %left PIPE
 %left COMA
+%right MAPS
 %right OR
 %right AND
 %left EQUAL GT LT GEQ LEQ NEQ
@@ -39,7 +41,7 @@
 %left PLUS MINUS
 %left TIMES DIV
 %nonassoc UMINUS
-%left APP
+%left APP E 					/* E is a constructor */
 
 
 
@@ -105,6 +107,9 @@ expression:			    /* règles de grammaire pour les expressions */
   | IF expression THEN expression ELSE expression %prec IF  { If($2, $4, $6) }
   | expression COMA expression                              { Cpl($1, $3) }
   | expression AFF expression                               { Aff($1, $3) }
+  | RAISE e = expression %prec APP                          { Raise e }
+  | TRY; e = expression; WITH E; p = pattern; MAPS; e1 = expression
+	{ Try(e, p, e1) }
   | MATCH expression WITH pattern_matching                  { Match($2, $4) }
   | FUNCTION pattern_matching
 	{ Fun(Ident "@", Match(Pattern (Ident "@"), $2)) }
