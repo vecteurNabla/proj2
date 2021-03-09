@@ -67,7 +67,7 @@ let rec affiche_expr_code e =
   | Try(e1,x,e2) -> aff_aux "try " e1 (" with E " ^ pattern_to_string x ^ " -> ") e2 ""
 
   | Raise e -> begin
-      print_string "raise E (" ;
+      print_string "raise (E " ;
       affiche_expr_code e ;
       print_string ")"
     end
