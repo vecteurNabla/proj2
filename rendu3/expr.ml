@@ -180,9 +180,10 @@ let rec eval env m k = function
       matching env m k v l
 
   | Cons(e1,e2) -> begin
-      let v = eval env m k e1 in
       match eval env m k e2 with
-      | VList t -> VList(v::t)
+      | VList t ->
+        let v = eval env m k e1 in
+        VList(v::t)
       | _ -> raise (Not_expected "une liste")
     end
 
