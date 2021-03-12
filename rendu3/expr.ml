@@ -21,7 +21,7 @@ type expr =
   | Pattern of pattern                    (* x *)
   | Let of pattern*expr*expr          (* let x = e1 in e2 *)
   | Fun of pattern*expr               (* fun x -> e *)
-  | Rec of pattern*expr*expr          (* let rec f x = e in e *)
+  | Rec of pattern*expr          (* let rec f x = e in e *)
   | App of expr*expr              (* e1 e2 *)
 
   | Cpl of expr*expr
@@ -45,7 +45,7 @@ and pattern_matching = (pattern*expr) list
 type value =
   | VInt of int
   | VFun of pattern*env*expr
-  | VRec of string*pattern*env*expr
+  (* | VRec of string*pattern*env*expr *)
   | VUnit
   | VRef of address
   | VBoo of bool
@@ -140,20 +140,19 @@ let rec eval env m k = function
     eval env' m k e2
 
   | Fun(x,e) -> VFun(x,env,e)
-  | Rec(Ident f,e1,e2) -> begin
-      match e1 with
-      | Fun(x,e) ->
-        let v = VRec(f, x, env, e) in
-        eval ((f,v)::env) m k e2
+  | Rec(Ident f,e) -> begin
+      match eval env m k e with
+      | VFun(x,env',e') ->
+        let rec v = VFun(x, (f,v)::env', e') in v
       | _ -> raise (Not_expected "une fonction")
     end
-  | Rec(_, _, _) -> raise (Not_expected "un nom de fonction recursive")
+  | Rec(_, _) -> raise (Not_expected "un nom de fonction recursive")
   | App(e1,e2) -> begin
       let varg = eval env m k e2 in
       let vfun = eval env m k e1 in
       match vfun with
       | VFun(x,env',e)   -> eval (add_pattern_to_env env' x varg) m k e
-      | VRec(f,x,env',e) -> eval (add_pattern_to_env ((f,vfun)::env') x varg) m k e
+      (* | VRec(f,x,env',e) -> eval (add_pattern_to_env ((f,vfun)::env') x varg) m k e *)
       | VStdLib(f) -> f m varg ;
       | _ -> raise App_not_fun
     end

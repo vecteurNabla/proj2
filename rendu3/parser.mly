@@ -99,7 +99,7 @@ expression:			    /* règles de grammaire pour les expressions */
   | l = let_decs IN e = expression
 	{ let l' = fst l in
 	  if snd l then
-	    Rec(fst l', snd l', e)
+	    Let(fst l', Rec(fst l', snd l'), e)
 	  else
 	    Let(fst l', snd l', e) }
   | app_expr                                                { $1 }
