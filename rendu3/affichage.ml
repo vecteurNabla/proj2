@@ -29,10 +29,11 @@ let rec affiche_expr_code e =
   | Const c -> print_string (const_to_string c)
 
   | Pattern x -> print_string (pattern_to_string x)
-  | Let(x,Rec (_,e1) ,e2) -> aff_aux ("let rec " ^ (pattern_to_string x)  ^ " = ") e1 " in " e2 ""
-  | Let(x,e1 ,e2) -> aff_aux ("let " ^ (pattern_to_string x)  ^ " = ") e1 " in " e2 ""
+  | Let(x,e1 ,e2) -> aff_aux ("let " ^ (pattern_to_string x)  ^ " = ")
+                      e1 " in " e2 ""
   | Fun(x,e) -> aff_aux "fun " (Pattern x) " -> " e ""
-  | Rec(_,e) -> affiche_expr_code e
+  | Rec(x, e, e') -> aff_aux ("let rec " ^ (pattern_to_string x) ^
+                               " = " ) e " in " e' ""
   | App(e1,e2) -> aff_aux "" e1 " (" e2 ")"
 
   | Cpl(e1,e2) -> aff_aux "(" e1 "," e2 ")"
@@ -93,11 +94,7 @@ let rec affiche_expr_tree e =
       affiche_expr_tree e ;
       print_string ")" ;
     end
-  | Rec(f,e) -> begin
-      print_string ("Rec(" ^ (pattern_to_string f) ^ ", ") ;
-      affiche_expr_tree e ;
-      print_string ")" ;
-    end
+  | Rec(f,e,e') -> aff_aux ("Rec(" ^ (pattern_to_string f) ^ ", ") e e'
   | App(e1,e2) -> aff_aux "App(" e1 e2
 
   | Cpl(e1,e2) -> aff_aux "Cpl(" e1 e2

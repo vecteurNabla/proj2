@@ -77,7 +77,7 @@ reversed_preceded_or_separated_nonempty_llist(delimiter, X):
 /* à droite, les valeurs associées */
 
 main:                       /* <- le point d'entrée (cf. + haut, "start") */
-expression EOF      { $1 }  /* on veut reconnaître une expression */
+surface EOF      { $1 }  /* on veut reconnaître une expression */
 ;
 
 
@@ -99,7 +99,7 @@ expression:			    /* règles de grammaire pour les expressions */
   | l = let_decs IN e = expression
 	{ let l' = fst l in
 	  if snd l then
-	    Let(fst l', Rec(fst l', snd l'), e)
+	    Rec(fst l', snd l', e)
 	  else
 	    Let(fst l', snd l', e) }
   | app_expr                                                { $1 }
