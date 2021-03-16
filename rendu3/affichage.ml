@@ -132,7 +132,7 @@ let rec affiche_expr_tree e =
   | Try(e1,p,e2) -> begin
       print_string "Try(" ;
       affiche_expr_tree e1 ;
-      print_string (", "^ pattern_to_string p) ;
+      print_string (", "^ pattern_to_string p ^ ", ") ;
       affiche_expr_tree e2 ;
       print_string ")"
     end
