@@ -11,13 +11,14 @@ let std_input = ref false
 let compile e =
   let m = Memory.empty_mem () in
   let env = StdLib.load_stdlib [] in
-  let k_init v =
+  let k_init v = v in
+  let k_break v =
     print_string "Exception : E " ;
     affiche_val v ;
     print_newline() ;
     VUnit
   in
-  let v = eval env m k_init e in
+  let v = eval env m e k_init k_break in
   if !outval then begin
     affiche_val v ; print_newline ()
   end

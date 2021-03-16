@@ -127,75 +127,83 @@ let rec pattern_match p v = match p,v with
   | _ -> false
 
 (* sémantique opérationnelle à grands pas *)
-let rec eval env m k = function
-  | Const c -> const_to_val c
+let rec eval env m e k break = match e with
+  | Const c -> k (const_to_val c)
 
-  | Cpl(e1,e2) -> VCpl(eval env m k e1, eval env m k e2)
+  | Cpl(e1,e2) -> VCpl( eval env m e1 k break,  eval env m e2 k break)
 
-  | Pattern x -> find_pattern env x
+  | Pattern x -> k (find_pattern env x)
 
   | Let(x, e1, e2) ->
-    let v = eval env m k e1 in
+    let v =  eval env m e1 k break in
     let env' = add_pattern_to_env env x v in
-    eval env' m k e2
+     eval env' m e2 k break
 
   | Fun(x,e) -> VFun(x,env,e)
   | Rec(Ident f, e, e') ->
      let v =
        begin
-         match eval env m k e with
+         match  eval env m e k break with
          | VFun(x,env',e') ->
             let rec v = VFun(x, (f,v)::env', e') in v
          | _ -> raise (Not_expected "une fonction")
        end
-     in eval (add_pattern_to_env env (Ident f) v) m k e'
+     in  eval (add_pattern_to_env env (Ident f) v) m e' k break 
   | Rec(_, _, _) -> raise (Not_expected "un nom de fonction recursive")
-  | App(e1,e2) -> begin
-      let varg = eval env m k e2 in
-      let vfun = eval env m k e1 in
-      match vfun with
-      | VFun(x,env',e)   -> eval (add_pattern_to_env env' x varg) m k e
-      (* | VRec(f,x,env',e) -> eval (add_pattern_to_env ((f,vfun)::env') x varg) m k e *)
-      | VStdLib(f) -> f m varg ;
-      | _ -> raise App_not_fun
-    end
+  | App(e1,e2) ->
+    (* begin
+     *   let varg = eval env m e2 k break in
+     *   let vfun = eval env m e1 k break in
+     *   match vfun with
+     *   | VFun(x,env',e) ->  eval (add_pattern_to_env env' x varg) m e k break
+     *  (\* | VRec(f,x,env',e) -> eval (add_pattern_to_env ((f,vfun)::env') x varg) m e break k *\)
+     *   | VStdLib(f) -> f m varg ;
+     *   | _ -> raise App_not_fun
+     * end *)
+     eval env m e1 (fun v ->
+         let varg = eval env m e2 k break in
+         match v with
+         | VFun(x,env',e) -> k (eval (add_pattern_to_env env' x varg) m e k break)
+         (* | VRec(f,x,env',e) -> eval (add_pattern_to_env ((f,vfun)::env') x varg) m e break k *)
+         | VStdLib(f) -> k (f m varg)
+         | _ -> raise App_not_fun
+       ) break
 
   | Seq(e1,e2) -> begin
-      ignore (eval env m k e1) ;
-      eval env m k e2
+      eval env m e1 (fun v -> eval env m e2 k break) break
     end
   | Aff(e1, e2) -> begin
-      let v = eval env m k e2 in
-      let a = !! (eval env m k e1) in
+      let v =  eval env m e2 k break  in
+      let a = !! ( eval env m e1 k break) in
       set_mem m a v ;
       VUnit
     end
   | Der(e) ->  begin
-      let a = !! (eval env m k e) in
+      let a = !! ( eval env m e k break) in
       try get_mem m a
       with Not_found -> raise (Unbound "reference")
     end
 
-  | If(b,e1,e2) -> if !?(eval env m k b) then eval env m k e1 else eval env m k e2
+  | If(b,e1,e2) -> if !?( eval env m b k break) then  eval env m e1 k break else  eval env m e2 k break 
 
   | Match(e,l) ->
-      let v = eval env m k e in
-      matching env m k v l
+      let v =  eval env m e k break in
+      matching env m v l k break
 
   | Cons(e1,e2) -> begin
-      match eval env m k e2 with
+      match  eval env m e2 k break  with
       | VList t ->
-        let v = eval env m k e1 in
+        let v =  eval env m e1 k break  in
         VList(v::t)
       | _ -> raise (Not_expected "une liste")
     end
 
   | Try (e1,p,e2) ->
-    let k' v = eval (add_pattern_to_env env p v) m k e2 in
-    eval env m k' e1
-  | Raise e -> let v = eval env m k e in k v
+    let k' v =  eval (add_pattern_to_env env p v) m e2 k break in
+     eval env m e1 break k' 
+  | Raise e -> let v = eval env m e k break in break v
 
-and matching env m k v = function
+and matching env m v l k break = match l with
   | [] -> raise Match_Failure
-  | (p, e)::_ when pattern_match p v -> eval (add_pattern_to_env env p v) m k e
-  | _::t -> matching env m k v t
+  | (p, e)::_ when pattern_match p v ->  eval (add_pattern_to_env env p v) m e k break
+  | _::t -> matching env m v t k break
