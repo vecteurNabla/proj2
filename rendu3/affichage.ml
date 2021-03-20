@@ -32,8 +32,9 @@ let rec affiche_expr_code e =
   | Let(x,e1 ,e2) -> aff_aux ("let " ^ (pattern_to_string x)  ^ " = ")
                       e1 " in " e2 ""
   | Fun(x,e) -> aff_aux "fun " (Pattern x) " -> " e ""
-  | Rec(x, e, e') -> aff_aux ("let rec " ^ (pattern_to_string x) ^
-                               " = " ) e " in " e' ""
+  | Rec(x, e, e') -> aff_aux ("let rec " ^ (pattern_to_string x) ^ " = " ) e " in " e' ""
+
+  | App(Fun _ as e1, e2) -> aff_aux "(" e1 ") (" e2 ")"
   | App(e1,e2) -> aff_aux "" e1 " (" e2 ")"
 
   | Cpl(e1,e2) -> aff_aux "(" e1 "," e2 ")"
@@ -145,7 +146,9 @@ let rec affiche_expr_tree e =
 
 let rec affiche_val = function
   | VInt x -> print_int x
-  | VFun _ -> print_string "<fun>"
+  | VFun (x,env,e) ->
+    print_string ("<fun> : fun " ^ pattern_to_string x ^ " -> ") ;
+    affiche_expr_code e
   (* | VRec _ -> print_string "<fun rec>" *)
   | VStdLib _ -> print_string "<fun stdlib>"
   | VUnit -> print_string "()"

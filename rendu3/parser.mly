@@ -205,8 +205,8 @@ match_case:
 ;
 
 fun_expr:
-  | VAR MAPS expression %prec FUN    { Fun($1, $3) }
-  | VAR fun_expr                     { Fun($1, $2) }
+  | pattern MAPS expression %prec FUN    { Fun($1, $3) }
+  | pattern fun_expr                     { Fun($1, $2) }
 
 app_expr:
   | atom_expr argument %prec APP      { App($1, $2) }

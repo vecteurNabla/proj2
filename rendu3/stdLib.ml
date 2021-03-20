@@ -1,4 +1,5 @@
 open Expr
+open Eval
 open Memory
 
 exception PrInt_not_int
@@ -102,7 +103,7 @@ let _fst m = (!&)
 let _snd m = (!&&)
 
 
-let load_stdlib env =
+let stdlib =
   ("fst", VStdLib _fst)::
   ("snd", VStdLib _snd)::
 
@@ -124,4 +125,7 @@ let load_stdlib env =
 
   ("prInt",VStdLib _prInt)::
   ("ref",VStdLib _ref)::
-  env
+  []
+
+let load_stdlib env =
+  stdlib @ env
