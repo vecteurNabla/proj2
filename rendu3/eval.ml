@@ -87,20 +87,29 @@ let rec eval env m e k break = match e with
   | Pattern x -> k (find_pattern env x)
 
   | Let(x, e1, e2) ->
-    let v =  eval env m e1 k break in
-    let env' = add_pattern_to_env env x v in
-     eval env' m e2 k break
+    (* let v =  eval env m e1 k break in
+     * let env' = add_pattern_to_env env x v in
+     *  eval env' m e2 k break *)
+     eval env m e1 (fun v1 ->
+         eval (add_pattern_to_env env x v1) m e2 k break
+       ) break
 
   | Fun(x,e) -> k ( VFun(x,env,e) )
   | Rec(Ident f, e, e') ->
-     let v =
-       begin
-         match  eval env m e k break with
-         | VFun(x,env',e') ->
-            let rec v = VFun(x, (f,v)::env', e') in v
+     (* let v =
+      *   begin
+      *     match  eval env m e k break with
+      *     | VFun(x,env',e') ->
+      *        let rec v = VFun(x, (f,v)::env', e') in v
+      *     | _ -> raise (Not_expected "une fonction")
+      *   end
+      * in  eval (add_pattern_to_env env (Ident f) v) m e' k break *)
+     eval env m e (function
+           VFun(x, env', e') ->
+           let rec v = VFun(x, (f,v)::env', e') in
+           eval (add_pattern_to_env env (Ident f) v) m e' k break
          | _ -> raise (Not_expected "une fonction")
-       end
-     in  eval (add_pattern_to_env env (Ident f) v) m e' k break
+       ) break
   | Rec(_, _, _) -> raise (Not_expected "un nom de fonction recursive")
   | App(e1,e2) ->
     (* begin
@@ -131,26 +140,40 @@ let rec eval env m e k break = match e with
       )
       break
 
-  | Seq(e1,e2) -> begin
-      eval env m e1 (fun v -> eval env m e2 k break) break
-    end
-  | Aff(e1, e2) -> begin
-      let v =  eval env m e2 k break  in
-      let a = !! ( eval env m e1 k break) in
-      set_mem m a v ;
-      VUnit
-    end
-  | Der(e) ->  begin
-      let a = !! ( eval env m e k break) in
-      try get_mem m a
-      with Not_found -> raise (Unbound "reference")
-    end
+  | Seq(e1,e2) -> eval env m e1 (fun v -> eval env m e2 k break) break
+  | Aff(e1, e2) ->
+     (* begin
+      *   let v =  eval env m e2 k break  in
+      *   let a = !! ( eval env m e1 k break) in
+      *   set_mem m a v ;
+      *   VUnit
+      * end *)
+     eval env m e2 (fun v2 ->
+         eval env m e1 (fun v1 ->
+             set_mem m !!v1 v2; VUnit
+           ) break
+       ) break
+  | Der(e) ->  
+    (* begin   
+     *   let a = !! ( eval env m e k break) in
+     *   try get_mem m a
+     *   with Not_found -> raise (Unbound "reference")
+     * end *)
+      eval env m e (fun v -> try k (get_mem m !!v)
+                          with Not_found -> raise (Unbound "reference")
+        ) break
 
-  | If(b,e1,e2) -> if !?( eval env m b k break) then  eval env m e1 k break else  eval env m e2 k break
+  | If(b,e1,e2) ->
+     (* if !?( eval env m b k break)
+      * then  eval env m e1 k break
+      * else  eval env m e2 k break *)
+     eval env m b (fun boo -> if !?boo then eval env m e1 k break
+                           else eval env m e2 k break) break
 
   | Match(e,l) ->
-      let v = eval env m e k break in
-      matching env m v l k break
+      (* let v = eval env m e k break in
+       * matching env m v l k break *)
+     eval env m e (fun v -> matching env m v l k break) break
 
   | Cons(e1,e2) ->
     eval env m e2 (function
@@ -166,7 +189,7 @@ let rec eval env m e k break = match e with
   | Try (e1,p,e2) ->
     let k' v =  eval (add_pattern_to_env env p v) m e2 k break in
      eval env m e1 break k'
-  | Raise e -> let v = eval env m e k break in break v
+  | Raise e -> eval env m e break break
 
 (* realise le mathcing des differents cas : value *)
 and matching env m v l k break = match l with
