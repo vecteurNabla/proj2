@@ -72,7 +72,7 @@ let calc result =
     flush stdout
 
   with
-  | Unbound x -> print_string (x^" indéfinie\n")
+  | Unbound x -> print_string (x ^ " indéfinie\n")
   | Div_by_Zero -> print_string "erreur: division par zero\n"
   | App_not_fun (e,v) -> print_string "erreur: l'expression suivante n'est pas une fonction, elle ne peut pas être appliquée\n |  " ;
     affiche_expr_code e ; print_string " = " ; affiche_val v ; print_newline () ;
@@ -115,7 +115,12 @@ let exec () =
     in
     let parse () = Parser.main Lexer.token lexbuf_file in
     let result = parse () in
-    calc result
+    if !autotest && (not !std_input) then
+      print_int (Sys.command
+                   ("[ `echo 'let prInt = print_int;;' | cat - "
+                    ^ !nom_fichier ^ " | ocaml -stdin` = `./fouine "
+                    ^ !nom_fichier ^ "` ]")) 
+    else calc result
   with _ -> print_string "erreur de saisie\n"
 
 

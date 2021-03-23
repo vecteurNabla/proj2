@@ -83,7 +83,7 @@ surface EOF      { $1 }  /* on veut reconnaître une expression */
 
 surface:
     e = expression { e }
-  | p = separated_nonempty_llist(DBLSEMICOL, let_decs); DBLSEMICOL; e = expression
+  | p = reverse_separated_nonempty_llist(DBLSEMICOL, let_decs); DBLSEMICOL; e = expression
 	{ List.fold_left (fun x l ->
 					   let l' = fst l in
 					   if snd l then

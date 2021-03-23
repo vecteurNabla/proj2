@@ -105,8 +105,8 @@ let rec eval env m e k break = match e with
       *   end
       * in  eval (add_pattern_to_env env (Ident f) v) m e' k break *)
      eval env m e (function
-           VFun(x, env', e') ->
-           let rec v = VFun(x, (f,v)::env', e') in
+           VFun(x, env', ef) ->
+           let rec v = VFun(x, (f,v)::env', ef) in
            eval (add_pattern_to_env env (Ident f) v) m e' k break
          | _ -> raise (Not_expected "une fonction")
        ) break
