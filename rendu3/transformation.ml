@@ -1,29 +1,38 @@
 open Expr
 
 let arg_init main_transform =
-  App(
-    main_transform,
-    Cpl(
-      Fun ( Ident "x", ~~ "x" ),
-      Fun ( Ident "x", ~~ "x" )
-    )
-  )
+  Let( Ident "main_transform",
+       main_transform,
+       App(
+         ~~ "main_transform",
+         Cpl(
+           Fun ( Ident "*x", ~~ "*x" ),
+           Fun ( Ident "*x", ~~ "*x" )
+         )
+       )
+     )
+
+
+let depth = ref 0
 
 let rec transform e =
   (* raccourcis utiles *)
-  let k = ~~ "k" in
-  let kE = ~~ "kE" in
-  let pkkE = PCpl(Ident "k",Ident "kE") in
+  incr depth ;
+  let k_str = "*k" ^ string_of_int !depth in
+  let kE_str = "*kE" ^ string_of_int !depth in
+  let k = ~~ k_str in
+  let kE = ~~ kE_str in
+  let pkkE = PCpl(Ident k_str ,Ident kE_str) in
   let kkE = Cpl( k , kE) in
   let two_expr e_fst e_snd e =
     App(
       transform e_fst,
       Cpl(
-        Fun( Ident "fst",
+        Fun( Ident "*fst",
              App(
                transform e_snd,
                Cpl(
-                 Fun( Ident "snd",
+                 Fun( Ident "*snd",
                       e
                     ),
                  kE
@@ -41,7 +50,7 @@ let rec transform e =
 
       | Cpl(e1,e2) ->
         two_expr e1 e2 begin
-          App( k , Cpl( ~~ "fst", ~~ "snd" ))
+          App( k , Cpl( ~~ "*fst", ~~ "*snd" ))
         end
 
       | Let(x, e1, e2) ->
@@ -55,15 +64,26 @@ let rec transform e =
 
       | Fun(x,e) -> App(k, Fun(x, transform e))
 
-      (* | Rec(Ident f, e, e') ->
-       * 
-       * | Rec(_, _, _) -> raise (Not_expected "un nom de fonction recursive") *)
-
+      | Rec(f, e1, e2) ->
+        App(
+          transform e1,
+          Cpl(
+            Fun( Ident "*v",
+                 Rec(f, ~~ "*v",
+                     App(
+                       transform e2,
+                       kkE
+                     )
+                    )
+               ),
+            kE
+          )
+        )
       | App(e1,e2) ->
         two_expr e2 e1 begin
           App(
-            App( ~~ "snd",
-                 ~~ "fst"
+            App( ~~ "*snd",
+                 ~~ "*fst"
                ),
             kkE
           )
@@ -85,15 +105,15 @@ let rec transform e =
 
        | Aff(e1, e2) ->
          two_expr e2 e1 begin
-           App ( k , Aff( ~~ "snd", ~~ "fst" ) )
+           App ( k , Aff( ~~ "*snd", ~~ "*fst" ) )
          end
 
        | Der(e) ->
          App(
            transform e,
            Cpl(
-             Fun( Ident "v",
-                  App ( k , Der(~~ "v") )
+             Fun( Ident "*v",
+                  App ( k , Der(~~ "*v") )
                 ),
              kE
            )
@@ -103,9 +123,9 @@ let rec transform e =
          App(
            transform b,
            Cpl(
-             Fun( Ident "b",
+             Fun( Ident "*b",
                   App(
-                    If(~~ "b",
+                    If(~~ "*b",
                        transform e1,
                        transform e2
                       ) ,
@@ -116,11 +136,22 @@ let rec transform e =
            )
          )
 
-       (* | Match(e,l) -> *)
+       | Match(e,l) ->
+         App(
+           transform e,
+           Cpl(
+             Fun( Ident "*v",
+                  Match( ~~ "*v",
+                         transform_match_list kkE l
+                       )
+                ),
+             kE
+           )
+         )
 
        | Cons(e1,e2) ->
          two_expr e1 e2 begin
-           App( k , Cpl( ~~ "fst", ~~ "snd" ) )
+           App( k , Cpl( ~~ "*fst", ~~ "*snd" ) )
          end
 
        | Try (e1,p,e2) ->
@@ -137,9 +168,11 @@ let rec transform e =
            Cpl( kE, kE )
          )
 
-      | _ -> failwith "autres constructeurs non supportés\n"
-
     end )
+
+and transform_match_list kkE = function
+  | [] -> []
+  | (x,e)::t -> (x, App( transform e, kkE)) :: transform_match_list kkE t
 
 (* let transform_stdlib_fun f m v =
  *   VFun( PCpl( Ident "k", Ident "kE"), [],  App( ~~ "k", f m v )) *)
