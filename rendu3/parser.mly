@@ -128,7 +128,7 @@ simpl_expr:
 ;
 
 atom_expr:
-  | constant                                                { Const $1 }
+  | constant                                                { ~& $1 }
   | LPAREN expression RPAREN                                { $2 }
   | VAR                                                     { Pattern $1 }
   | UNDER                                                   { Pattern Under }
@@ -137,8 +137,8 @@ atom_expr:
 ;
 
 expr_infix:
-  | MINUS expression %prec UMINUS         { App(App(Pattern (Ident "(-)"), Const (Int 0)), $2) }
-  | expression; o = op; expression        { App(App(Pattern (Ident o), $1), $3) }
+  | MINUS expression %prec UMINUS         { App(App( ~~ "(-)", ~& (Int 0)), $2) }
+  | expression; o = op; expression        { App(App( ~~ o, $1), $3) }
 ;
 %inline op:
   | PLUS  {"(+)"}
@@ -169,7 +169,7 @@ pars_list:
 
 list_sh:						/* [x_1; ... x_n] */
   | l = reverse_separated_nonempty_llist(SEQ, atom_expr)
-	{ List.fold_left (fun x b -> Cons(b, x)) (Const Nil) l }
+	{ List.fold_left (fun x b -> Cons(b, x)) (~& Nil) l }
 ;
 
 /* list_pt: */
@@ -187,13 +187,13 @@ pattern:
   | UNDER                                      { Under }
   | constant                                   { PConst $1 }
   | pattern COMA pattern                       { PCpl($1,$3) }
-  | pattern CONS pattern                       { PList_cons($1, $3) }
+  | pattern CONS pattern                       { PList($1, $3) }
   | LSQB pattern_list_sh RSQB                  { $2 }
 ;
 
 pattern_list_sh:						/* [x_1; ... x_n] */
-  | pattern SEQ pattern_list_sh       { PList_cons($1, $3) }
-  | pattern                           { PList_cons($1, PConst Nil) }
+  | pattern SEQ pattern_list_sh       { PList($1, $3) }
+  | pattern                           { PList($1, PConst Nil) }
 ;
 
 pattern_matching:

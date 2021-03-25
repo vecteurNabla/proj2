@@ -46,7 +46,7 @@ let rec transform e =
 
   Fun( pkkE , begin
       match e with
-      | Const _ | Pattern _ -> App(k, e)
+      | Val _ | Pattern _ -> App(k, e)
 
       | Cpl(e1,e2) ->
         two_expr e1 e2 begin
@@ -151,7 +151,7 @@ let rec transform e =
 
        | Cons(e1,e2) ->
          two_expr e1 e2 begin
-           App( k , Cpl( ~~ "*fst", ~~ "*snd" ) )
+           App( k , Cons( ~~ "*fst", ~~ "*snd" ) )
          end
 
        | Try (e1,p,e2) ->
@@ -174,10 +174,4 @@ and transform_match_list kkE = function
   | [] -> []
   | (x,e)::t -> (x, App( transform e, kkE)) :: transform_match_list kkE t
 
-(* let transform_stdlib_fun f m v =
- *   VFun( PCpl( Ident "k", Ident "kE"), [],  App( ~~ "k", f m v )) *)
-
-(* let rec transform_stdlib = function
- *   | [] -> []
- *   | (name , VStdLib f)::t -> (name, transform_stdlib_fun f) :: transform_stdlib t
- *   | h::t -> h :: transform_stdlib t *)
+let transform_stdlib f = fun m varg -> transform (f m varg)

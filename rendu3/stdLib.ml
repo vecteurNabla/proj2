@@ -4,128 +4,135 @@ open Memory
 
 exception PrInt_not_int
 
+(* fonctions std simples, ie sans application partielles *)
 let _prInt m = function
-  | VInt i -> (print_int i ; print_newline () ; VInt i )
+  | Const (Int i) -> (print_int i ; print_newline () ; ~& (Int i) )
   | _ -> raise PrInt_not_int
 
 let _ref m v =
-  VRef (alloc_mem m v)
-
-
-
-let _add1 i m = function
-  | VInt j -> VInt (i+j)
-  | _ -> raise (Not_expected "un entier")
-let _add m = function
-  | VInt i -> VStdLib (_add1 i)
-  | _ -> raise (Not_expected "un entier")
-
-let _mul1 i m = function
-  | VInt j -> VInt (i*j)
-  | _ -> raise (Not_expected "un entier")
-let _mul m = function
-  | VInt i -> VStdLib (_mul1 i)
-  | _ -> raise (Not_expected "un entier")
-
-let _min1 i m = function
-  | VInt j -> VInt (i-j)
-  | _ -> raise (Not_expected "un entier")
-let _min m = function
-  | VInt i -> VStdLib (_min1 i)
-  | _ -> raise (Not_expected "un entier")
-
-let _div1 i m = function
-  | VInt 0 -> raise Div_by_Zero
-  | VInt j -> VInt (i/j)
-  | _ -> raise (Not_expected "un entier")
-let _div m = function
-  | VInt i -> VStdLib (_div1 i)
-  | _ -> raise (Not_expected "un entier")
-
-
-let _and1 i m = function
-  | VBoo j -> VBoo (i&&j)
-  | _ -> raise (Not_expected "un booléen")
-let _and m = function
-  | VBoo i -> VStdLib (_and1 i)
-  | _ -> raise (Not_expected "un booléen")
-
-let _or1 i m = function
-  | VBoo j -> VBoo (i||j)
-  | _ -> raise (Not_expected "un booléen")
-let _or m = function
-  | VBoo i -> VStdLib (_or1 i)
-  | _ -> raise (Not_expected "un booléen")
+  Val (Ref (alloc_mem m v))
 
 let _not m = function
-  | VBoo b -> VBoo (not b)
+  | Const (Bool b) -> ~& (Bool (not b))
   | _ -> raise (Not_expected "un booleen")
 
+let _fst m v = Val (!& v)
 
-let _leq1 i m = function
-  | VInt j -> VBoo (i<=j)
-  | _ -> raise (Not_expected "un entier")
-let _leq m = function
-  | VInt i -> VStdLib (_leq1 i)
-  | _ -> raise (Not_expected "un entier")
+let _snd m v = Val (!&& v)
 
-let _geq1 i m = function
-  | VInt j -> VBoo (i>=j)
-  | _ -> raise (Not_expected "un entier")
-let _geq m = function
-  | VInt i -> VStdLib (_geq1 i)
-  | _ -> raise (Not_expected "un entier")
+let simples =
+  ("fst", StdLib _fst)::
+  ("snd", StdLib _snd)::
 
-let _lt1 i m = function
-  | VInt j -> VBoo (i<j)
-  | _ -> raise (Not_expected "un entier")
-let _lt m = function
-  | VInt i -> VStdLib (_lt1 i)
-  | _ -> raise (Not_expected "un entier")
+  ("not", StdLib _not)::
 
-let _gt1 i m = function
-  | VInt j -> VBoo (i>j)
-  | _ -> raise (Not_expected "un entier")
-let _gt m = function
-  | VInt i -> VStdLib (_gt1 i)
-  | _ -> raise (Not_expected "un entier")
-
-
-let _eq1 v m v' = VBoo (v = v')
-let _eq m v = VStdLib (_eq1 v)
-
-let _neq1 v m v' = VBoo (v <> v')
-let _neq m v = VStdLib (_neq1 v)
-
-
-let _fst m = (!&)
-
-let _snd m = (!&&)
-
-
-let stdlib =
-  ("fst", VStdLib _fst)::
-  ("snd", VStdLib _snd)::
-
-  ("(+)",VStdLib _add)::
-  ("(*)",VStdLib _mul)::
-  ("(-)",VStdLib _min)::
-  ("(/)",VStdLib _div)::
-
-  ("(&&)", VStdLib _and)::
-  ("(||)", VStdLib _or)::
-  ("not",VStdLib _not)::
-
-  ("(<=)", VStdLib _leq)::
-  ("(>=)", VStdLib _geq)::
-  ("(<)", VStdLib _lt)::
-  ("(>)", VStdLib _gt)::
-  ("(=)", VStdLib _eq)::
-  ("(<>)", VStdLib _neq)::
-
-  ("prInt",VStdLib _prInt)::
-  ("ref",VStdLib _ref)::
+  ("prInt", StdLib _prInt)::
+  ("ref", StdLib _ref)::
   []
 
-let load_stdlib env =
-  stdlib @ env
+
+(* fonctions doubles, ie avec application partielle *)
+
+(* fonctions non traduites *)
+let arithop1 op i m = function
+  | Const (Int j) -> ~& (Int (op i j))
+  | _ -> raise (Not_expected "un entier")
+let arithop op m = function
+  | Const (Int i) -> Val (StdLib (arithop1 op i))
+  | _ -> raise (Not_expected "un entier")
+
+
+let boolop1 op i m = function
+  | Const (Bool j) -> ~& (Bool (op i j))
+  | _ -> raise (Not_expected "un booléen")
+let boolop op m = function
+  | Const (Bool i) -> Val (StdLib (boolop1 op i))
+  | _ -> raise (Not_expected "un booléen")
+
+
+let cmp1 op i m = function
+  | Const (Int j) -> ~& (Bool (op i j))
+  | _ -> raise (Not_expected "un entier")
+let cmp op m = function
+  | Const (Int i) -> Val (StdLib (cmp1 op i))
+  | _ -> raise (Not_expected "un entier")
+
+let _eq1 v m v' = ~& (Bool (v = v'))
+let _eq m v = Val (StdLib (_eq1 v))
+
+let _neq1 v m v' = ~& (Bool (v <> v'))
+let _neq m v = Val (StdLib (_neq1 v))
+
+let doubles =
+  ("(+)", StdLib (arithop ( + )))::
+  ("(*)", StdLib (arithop ( * )))::
+  ("(-)", StdLib (arithop ( - )))::
+  ("(/)", StdLib (arithop ( / )))::
+
+  ("(&&)", StdLib (boolop ( && )))::
+  ("(||)", StdLib (boolop ( || )))::
+
+  ("(<=)", StdLib (cmp ( <= )))::
+  ("(>=)", StdLib (cmp ( >= )))::
+  ("(<)", StdLib (cmp ( < )))::
+  ("(>)", StdLib (cmp ( > )))::
+  ("(=)", StdLib _eq)::
+  ("(<>)", StdLib _neq)::
+  []
+
+(* fonctions traduites *)
+let t = Transformation.transform_stdlib
+
+let t_arithop op = t begin
+    fun m -> function
+  | Const (Int i) -> Val (StdLib (t (arithop1 op i)))
+  | _ -> raise (Not_expected "un entier")
+end
+
+let t_boolop op = t begin
+    fun m -> function
+  | Const (Bool i) -> Val (StdLib (t (boolop1 op i)))
+  | _ -> raise (Not_expected "un booléen")
+end
+
+let t_cmp op = t begin
+    fun m -> function
+  | Const (Int i) -> Val (StdLib (cmp1 op i))
+  | _ -> raise (Not_expected "un entier")
+end
+
+let _t_eq = t begin
+    fun m v -> Val (StdLib (_eq1 v))
+end
+
+let _t_neq = t begin
+    fun m v -> Val (StdLib (_neq1 v))
+end
+
+let t_doubles =
+  ("(+)", StdLib (t_arithop ( + )))::
+  ("(*)", StdLib (t_arithop ( * )))::
+  ("(-)", StdLib (t_arithop ( - )))::
+  ("(/)", StdLib (t_arithop ( / )))::
+
+  ("(&&)", StdLib (t_boolop ( && )))::
+  ("(||)", StdLib (boolop ( || )))::
+
+  ("(<=)", StdLib (t_cmp ( <= )))::
+  ("(>=)", StdLib (t_cmp ( >= )))::
+  ("(<)", StdLib (t_cmp ( < )))::
+  ("(>)", StdLib (t_cmp ( > )))::
+  ("(=)", StdLib _t_eq)::
+  ("(<>)", StdLib _t_neq)::
+  []
+
+let stdlib =
+ simples @ doubles
+
+let rec transform = function
+  | [] -> []
+  | (name, StdLib f)::t -> (name, StdLib (Transformation.transform_stdlib f)) :: transform t
+  | h::t -> h::transform t
+
+ let stdlib_transform =
+   (transform simples) @ t_doubles
