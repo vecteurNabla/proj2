@@ -28,7 +28,19 @@ let compile env e =
   in
   eval env m e k_init k_break
 
+  
+let read_stdin () =
+  let try_read () =
+    try
+      Some (read_line () ^ "\n")
+    with End_of_file -> None
+  in
+  let rec loop acc = match try_read () with
+    | Some s -> loop (s::acc)
+    | None -> List.fold_left (fun a b -> b ^ a) "" acc
+  in String.escaped (loop [])
 
+   
 let calc result =
   try
     if !tree then begin
@@ -105,7 +117,8 @@ let exec () =
   Arg.parse
     optlist
 
-    (fun s -> nom_fichier := s) (* fonction a declencher lorsqu'on recupere un string qui n'est pas une option *)
+    (fun s -> nom_fichier := s) (* fonction a declencher lorsqu'on
+                             * recupere un string qui n'est pas une option *)
     ""; (* message d'accueil *)
 
   try
@@ -113,14 +126,29 @@ let exec () =
       (if !std_input then stdin
       else open_in !nom_fichier)
     in
-    let parse () = Parser.main Lexer.token lexbuf_file in
-    let result = parse () in
-    if !autotest && (not !std_input) then
-      print_int (Sys.command
-                   ("[ `echo 'let prInt = print_int;;' | cat - "
-                    ^ !nom_fichier ^ " | ocaml -stdin` = `./fouine "
-                    ^ !nom_fichier ^ "` ]")) 
-    else calc result
+    if !autotest then
+      begin
+        (* let in_from_stdin = if !std_input then read_stdin ()
+         *                     else "" in
+         * if 0 = (Sys.command
+         *           ("[ `echo 'let prInt = print_int;;' | cat - "
+         *            ^ (if not !std_input then !nom_fichier else
+         *                 "<(echo \"" ^ in_from_stdin ^ "\" )"
+         *              )
+         *            ^ " | ocaml -stdin` = `./fouine "
+         *            ^ (if not !std_input then !nom_fichier else
+         *                 "-stdin <(echo \"" ^ in_from_stdin ^ "\" )"
+         *              )
+         *            ^ "` ]")) then
+         *   print_string "OK"
+         * else print_string "NO";
+         * print_newline () *)
+        print_string ("echo \"" ^ read_stdin () ^ "\"")
+      end
+    else
+      let parse () = Parser.main Lexer.token lexbuf_file in
+      let result = parse () in
+      calc result
   with _ -> print_string "erreur de saisie\n"
 
 
