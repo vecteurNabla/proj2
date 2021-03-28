@@ -13,9 +13,21 @@ let rec pattern_to_string = function
   | Ident x -> x
   | PConst c -> const_to_string c
   | PCpl (x,y) -> "(" ^ pattern_to_string x ^ "," ^ pattern_to_string y ^")"
-  | PList_cons (x,y) -> pattern_to_string x ^ "::" ^ pattern_to_string y
+  | PList (x,y) -> pattern_to_string x ^ "::" ^ pattern_to_string y
 
-let rec affiche_expr_code e =
+let rec affiche_val = function
+  | Const c -> print_string (const_to_string c)
+  | Ref _ -> print_string "<address>"
+  | StdLib _ -> print_string "<fun stdlib>"
+  | VFun (x,env,e) ->
+    print_string ("<fun> : fun " ^ pattern_to_string x ^ " -> ") ;
+    affiche_expr_code e
+  | VCpl (v1,v2) ->
+    print_string "(" ; affiche_val v1 ; print_string "," ; affiche_val v2 ; print_string ")"
+  | VList (v1,v2) ->
+    print_string "(" ; affiche_val v1 ; print_string "::" ; affiche_val v2 ; print_string ")"
+
+and affiche_expr_code e =
   let aff_aux s1 a s2 b s3 =
       begin
 	print_string s1;
@@ -26,7 +38,7 @@ let rec affiche_expr_code e =
       end
   in
   match e with
-  | Const c -> print_string (const_to_string c)
+  | Val v -> affiche_val v
 
   | Pattern x -> print_string (pattern_to_string x)
   | Let(x,e1 ,e2) -> aff_aux ("let " ^ (pattern_to_string x)  ^ " = ")
@@ -86,7 +98,7 @@ let rec affiche_expr_tree e =
       end
   in
   match e with
-  | Const c -> print_string (const_to_string c)
+  | Val v -> affiche_val v
 
   | Pattern x -> print_string (pattern_to_string x)
   | Let(x,e1,e2) -> aff_aux ("Let(" ^ (pattern_to_string x)  ^ ", ") e1 e2
@@ -144,20 +156,3 @@ let rec affiche_expr_tree e =
       print_string ")"
     end
 
-let rec affiche_val = function
-  | VInt x -> print_int x
-  | VFun (x,env,e) ->
-    print_string ("<fun> : fun " ^ pattern_to_string x ^ " -> ") ;
-    affiche_expr_code e
-  (* | VRec _ -> print_string "<fun rec>" *)
-  | VStdLib _ -> print_string "<fun stdlib>"
-  | VUnit -> print_string "()"
-  | VRef _ -> print_string "<address>"
-  | VBoo true -> print_string "true"
-  | VBoo false -> print_string "false"
-  | VCpl (v1,v2) ->
-    print_string "(" ; affiche_val v1 ; print_string "," ; affiche_val v2 ; print_string ")"
-  | VList l -> begin
-      List.iter (fun v -> (affiche_val v ; print_string "::")) l ;
-      print_string "[]"
-    end

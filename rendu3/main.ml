@@ -24,7 +24,7 @@ let compile env e =
     print_string "Exception : E " ;
     affiche_val v ;
     print_newline() ;
-    Expr.VUnit
+    Expr.Const Expr.Unit
   in
   eval env m e k_init k_break
 
@@ -66,7 +66,7 @@ let calc result =
         end ;
 
         if !run then begin
-          let v = compile (* (Transformation.transform_stdlib StdLib.stdlib) *) StdLib.stdlib (Transformation.arg_init main_transform)
+          let v = compile StdLib.stdlib_transform (Transformation.arg_init main_transform)
           in
           if !outval then begin
             affiche_val v ; print_newline ()
@@ -90,7 +90,7 @@ let calc result =
     affiche_expr_code e ; print_string " = " ; affiche_val v ; print_newline () ;
   | Not_expected s -> print_string ("erreur: " ^ s ^ " est attendu.e\n")
   | StdLib.PrInt_not_int -> print_string "erreur: argument de la fonction prInt n'est pas entier comme attendu\n"
-  | Match_Failure -> print_string "erreur: matching impossible\n"
+  | Match_Failure s -> print_string ( "erreur: matching impossible" ^ s ^ "\n")
 
 
 let exec () =
