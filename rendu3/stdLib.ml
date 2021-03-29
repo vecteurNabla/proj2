@@ -44,10 +44,10 @@ let arithop op m = function
 
 let boolop1 op i m = function
   | Const (Bool j) -> ~& (Bool (op i j))
-  | _ -> raise (Not_expected "un booléen")
+  | v -> raise (Not_expected "un booléen")
 let boolop op m = function
   | Const (Bool i) -> Val (StdLib (boolop1 op i))
-  | _ -> raise (Not_expected "un booléen")
+  | v -> raise (Not_expected "un booléen")
 
 
 let cmp1 op i m = function
@@ -97,16 +97,16 @@ end
 
 let t_cmp op = t begin
     fun m -> function
-  | Const (Int i) -> Val (StdLib (cmp1 op i))
+  | Const (Int i) -> Val (StdLib (t (cmp1 op i)))
   | _ -> raise (Not_expected "un entier")
 end
 
 let _t_eq = t begin
-    fun m v -> Val (StdLib (_eq1 v))
+    fun m v -> Val (StdLib (t (_eq1 v)))
 end
 
 let _t_neq = t begin
-    fun m v -> Val (StdLib (_neq1 v))
+    fun m v -> Val (StdLib ( t(_neq1 v)))
 end
 
 let t_doubles =
@@ -116,7 +116,7 @@ let t_doubles =
   ("(/)", StdLib (t_arithop ( / )))::
 
   ("(&&)", StdLib (t_boolop ( && )))::
-  ("(||)", StdLib (boolop ( || )))::
+  ("(||)", StdLib (t_boolop ( || )))::
 
   ("(<=)", StdLib (t_cmp ( <= )))::
   ("(>=)", StdLib (t_cmp ( >= )))::

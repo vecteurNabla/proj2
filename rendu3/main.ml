@@ -52,7 +52,7 @@ let calc result =
     end ;
 
     if !cps then begin
-      let main_transform = Transformation.transform result in
+      let main_transform = Transformation.arg_init (Transformation.transform result) in
         if !outcode then begin
           affiche_expr_code main_transform ; print_newline ()
         end ;
@@ -66,7 +66,7 @@ let calc result =
         end ;
 
         if !run then begin
-          let v = compile StdLib.stdlib_transform (Transformation.arg_init main_transform)
+          let v = compile StdLib.stdlib_transform main_transform
           in
           if !outval then begin
             affiche_val v ; print_newline ()
