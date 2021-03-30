@@ -1,9 +1,18 @@
-# FouineJN - rendu 1 - mars 2021
+# FouineJN - rendu 3 - aril 2021
+
+## Utilisation
+
 pour compiler, lancer
 `make`
 
 pour exécuter, lancer
-`./fouine fichier.ml`
+
+`./fouine [-options] fichier.ml`
+
+Pour connaître la liste des options, faire `./fouine --help`
+
+
+## Remarques
 
 Il reste un shift/reduce conflict que l'on ne parvient pas à corriger,
 dans ce genre de cas:
@@ -28,9 +37,21 @@ filtrage (dans notre grammaire, `atom_expr` au lieu de
 membre droit d'un cas de filtrage dans la plupart des cas. On peut donc
 exprimer les mêmes choses, mais avec plus de parenthèses qu'en OCaml.
 
-## tests
+## Répartition du travail
 
-Les tests sont répartis en trois dossiers : debutant, intermediaire et avance.
+**Nicolas** :
+
+- passage de `eval` en cps
+
+- implémentation de l'autotest
+
+**Robin** :
+
+- traduction et options associées
+
+## Tests
+
+Les tests sont répartis en trois dossiers : debutant, intermediaire, avance (les mêmes qu'au rendu précédent) et exceptions
 
 ### debutant
 
@@ -77,3 +98,11 @@ Les tests sont répartis en trois dossiers : debutant, intermediaire et avance.
 - `match.ml` deux match imbriqués
 
 - `peano.ml` un exemple d'utilisation des listes et des macthing pour représenter les entiers de peano
+
+- `dblsemi.ml` double semicolon (avec match et let .. in imbriqué)
+
+### exceptions
+
+- `raise_simple.ml` exception simple, non rattrapée : le dernière ligne n'est jamais exécutée
+
+- `raise1.ml` excpetion avec matching d'une liste au rattrapage

@@ -1,13 +1,15 @@
 open Expr
 
+let (~+) s = "x4V13r_L3r0y" ^ s
+
 let arg_init main_transform =
   Let( Ident "main_transform",
        main_transform,
        App(
          ~~ "main_transform",
          Cpl(
-           Fun ( Ident "*x", ~~ "*x" ),
-           Fun ( Ident "*x", ~~ "*x" )
+           Fun ( Ident ~+ "x", ~~ ~+ "x" ),
+           Fun ( Ident ~+ "x", ~~ ~+ "x" )
          )
        )
      )
@@ -18,8 +20,8 @@ let depth = ref 0
 let rec transform e =
   (* raccourcis utiles *)
   incr depth ;
-  let k_str = "*k" ^ string_of_int !depth in
-  let kE_str = "*kE" ^ string_of_int !depth in
+  let k_str = ~+ "k" ^ string_of_int !depth in
+  let kE_str = ~+ "kE" ^ string_of_int !depth in
   let k = ~~ k_str in
   let kE = ~~ kE_str in
   let pkkE = PCpl(Ident k_str ,Ident kE_str) in
@@ -28,11 +30,11 @@ let rec transform e =
     App(
       transform e_fst,
       Cpl(
-        Fun( Ident "*fst",
+        Fun( Ident ~+ "fst",
              App(
                transform e_snd,
                Cpl(
-                 Fun( Ident "*snd",
+                 Fun( Ident ~+ "snd",
                       e
                     ),
                  kE
@@ -50,7 +52,7 @@ let rec transform e =
 
       | Cpl(e1,e2) ->
         two_expr e1 e2 begin
-          App( k , Cpl( ~~ "*fst", ~~ "*snd" ))
+          App( k , Cpl( ~~ ~+ "fst", ~~ ~+ "snd" ))
         end
 
       | Let(x, e1, e2) ->
@@ -68,8 +70,8 @@ let rec transform e =
         App(
           transform e1,
           Cpl(
-            Fun( Ident "*v",
-                 Rec(f, ~~ "*v",
+            Fun( Ident ~+ "v",
+                 Rec(f, ~~ ~+ "v",
                      App(
                        transform e2,
                        kkE
@@ -82,8 +84,8 @@ let rec transform e =
       | App(e1,e2) ->
         two_expr e2 e1 begin
           App(
-            App( ~~ "*snd",
-                 ~~ "*fst"
+            App( ~~ ~+ "snd",
+                 ~~ ~+ "fst"
                ),
             kkE
           )
@@ -105,15 +107,15 @@ let rec transform e =
 
        | Aff(e1, e2) ->
          two_expr e2 e1 begin
-           App ( k , Aff( ~~ "*snd", ~~ "*fst" ) )
+           App ( k , Aff( ~~ ~+ "snd", ~~ ~+ "fst" ) )
          end
 
        | Der(e) ->
          App(
            transform e,
            Cpl(
-             Fun( Ident "*v",
-                  App ( k , Der(~~ "*v") )
+             Fun( Ident ~+ "v",
+                  App ( k , Der(~~ ~+ "v") )
                 ),
              kE
            )
@@ -123,9 +125,9 @@ let rec transform e =
          App(
            transform b,
            Cpl(
-             Fun( Ident "*b",
+             Fun( Ident ~+ "b",
                   App(
-                    If(~~ "*b",
+                    If(~~ ~+ "b",
                        transform e1,
                        transform e2
                       ) ,
@@ -140,8 +142,8 @@ let rec transform e =
          App(
            transform e,
            Cpl(
-             Fun( Ident "*v",
-                  Match( ~~ "*v",
+             Fun( Ident ~+ "v",
+                  Match( ~~ ~+ "v",
                          transform_match_list kkE l
                        )
                 ),
@@ -150,8 +152,8 @@ let rec transform e =
          )
 
        | Cons(e1,e2) ->
-         two_expr e1 e2 begin
-           App( k , Cons( ~~ "*fst", ~~ "*snd" ) )
+         two_expr e2 e1 begin
+           App( k , Cons( ~~ ~+ "snd", ~~ ~+ "fst" ) )
          end
 
        | Try (e1,p,e2) ->
