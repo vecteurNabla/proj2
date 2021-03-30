@@ -136,7 +136,7 @@ let exec () =
                                          ^ in_from_stdin
                                          ^ "\" | ./fouine -stdin"
                       else
-                        "/.fouine " ^ !nom_fichier
+                        "./fouine " ^ !nom_fichier
                      ) ^ ")\" ]")
         then
           print_string "OK"
