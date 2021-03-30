@@ -132,15 +132,14 @@ let exec () =
                    ^ (if not !std_input then !nom_fichier else
                         "<(echo -e '" ^ in_from_stdin ^ "')"
                      )
-                   ^ " | ocaml -stdin)\" = \"$(./fouine "
-                   ^ (if not !std_input then !nom_fichier else
-                        "-stdin <(echo -e '" ^ in_from_stdin ^ "')"
+                   ^ " | ocaml -stdin)\" = \"$("
+                   ^ (if not !std_input then "./fouine " ^ !nom_fichier else
+                        "echo -e '" ^ in_from_stdin ^ "' | ./fouine -stdin"
                      )
                    ^ ")\" ]")) then
           print_string "OK"
         else print_string "NO";
         print_newline ()
-         (* let _ = Sys.command ("echo \"hello\" | cat - <(echo -e \"" ^ read_stdin () ^ "\")") in () *)
       end
     else
       let lexbuf_file = Lexing.from_channel
