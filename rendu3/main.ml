@@ -38,7 +38,7 @@ let read_stdin () =
   let rec loop acc = match try_read () with
     | Some s -> loop (s::acc)
     | None -> List.fold_left (fun a b -> b ^ a) "" acc
-  in String.escaped (loop [])
+  in (loop [])
 
    
 let calc result =
@@ -126,17 +126,19 @@ let exec () =
       begin
         let in_from_stdin = if !std_input then read_stdin ()
                             else "" in
-        if 0 = (Sys.command
-                  ("[ \"$(cat <(echo -e \"let prInt i = print_int i;
-                    print_newline (); i\n;;\n\") "
-                   ^ (if not !std_input then !nom_fichier else
-                        "<(echo -e '" ^ in_from_stdin ^ "')"
-                     )
-                   ^ " | ocaml -stdin)\" = \"$("
-                   ^ (if not !std_input then "./fouine " ^ !nom_fichier else
-                        "echo -e '" ^ in_from_stdin ^ "' | ./fouine -stdin"
-                     )
-                   ^ ")\" ]")) then
+        if 0 = Sys.command
+                 ("[ \"$(printf \"%b\n%b\" \"let prInt i = print_int i; print_newline (); i\n;;\n\" "
+                  ^  (if !std_input then "\"" ^ in_from_stdin ^"\""
+                      else
+                        "$(cat " ^ !nom_fichier ^ ")"
+                     ) ^ " | ocaml -stdin)\" = \"$("
+                  ^  (if !std_input then "printf \"%b\n\" \""
+                                         ^ in_from_stdin
+                                         ^ "\" | ./fouine -stdin"
+                      else
+                        "/.fouine " ^ !nom_fichier
+                     ) ^ ")\" ]")
+        then
           print_string "OK"
         else print_string "NO";
         print_newline ()

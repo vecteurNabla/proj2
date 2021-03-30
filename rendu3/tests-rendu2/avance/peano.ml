@@ -69,4 +69,4 @@ let u = int_to_peano 5 in
 let v = int_to_peano 12 in
 let w = mult u v in
 let x = quot w [();();()] in
-if geq x [] then prInt (peano_to_int x) else ()
+if geq x [] then prInt (peano_to_int x) else -1
