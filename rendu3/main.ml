@@ -122,30 +122,31 @@ let exec () =
     ""; (* message d'accueil *)
 
   try
-    let lexbuf_file = Lexing.from_channel
-      (if !std_input then stdin
-      else open_in !nom_fichier)
-    in
     if !autotest then
       begin
-        (* let in_from_stdin = if !std_input then read_stdin ()
-         *                     else "" in
-         * if 0 = (Sys.command
-         *           ("[ `echo 'let prInt = print_int;;' | cat - "
-         *            ^ (if not !std_input then !nom_fichier else
-         *                 "<(echo \"" ^ in_from_stdin ^ "\" )"
-         *              )
-         *            ^ " | ocaml -stdin` = `./fouine "
-         *            ^ (if not !std_input then !nom_fichier else
-         *                 "-stdin <(echo \"" ^ in_from_stdin ^ "\" )"
-         *              )
-         *            ^ "` ]")) then
-         *   print_string "OK"
-         * else print_string "NO";
-         * print_newline () *)
-        print_string ("echo \"" ^ read_stdin () ^ "\"")
+        let in_from_stdin = if !std_input then read_stdin ()
+                            else "" in
+        if 0 = (Sys.command
+                  ("[ \"$(cat <(echo -e \"let prInt i = print_int i;
+                    print_newline (); i\n;;\n\") "
+                   ^ (if not !std_input then !nom_fichier else
+                        "<(echo -e '" ^ in_from_stdin ^ "')"
+                     )
+                   ^ " | ocaml -stdin)\" = \"$(./fouine "
+                   ^ (if not !std_input then !nom_fichier else
+                        "-stdin <(echo -e '" ^ in_from_stdin ^ "')"
+                     )
+                   ^ ")\" ]")) then
+          print_string "OK"
+        else print_string "NO";
+        print_newline ()
+         (* let _ = Sys.command ("echo \"hello\" | cat - <(echo -e \"" ^ read_stdin () ^ "\")") in () *)
       end
     else
+      let lexbuf_file = Lexing.from_channel
+                          (if !std_input then stdin
+                           else open_in !nom_fichier)
+      in
       let parse () = Parser.main Lexer.token lexbuf_file in
       let result = parse () in
       calc result
