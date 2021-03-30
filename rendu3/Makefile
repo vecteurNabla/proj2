@@ -1,9 +1,10 @@
-# test_files=$(wildcard tests-rendu3/*/*.ml)
+test_files=$(wildcard tests-rendu3/*/*.ml)
+do_test=$(patsubst %.ml, %.do_test, $(test_files))
 
-all: fouine
+OPT=-autotest -cps
 
-fouine: main.native
-	mv $^ $@
+all: main.native
+	mv main.native fouine
 
 main.native:
 	ocamlbuild -use-menhir -lib unix main.native
@@ -14,8 +15,9 @@ byte:
 clean:
 	ocamlbuild -clean
 
-# test:
-# 	foreach test_file, $(test_files), ./fouine -debug -outval $(test_file)
+test: $(do_test)
 
+%.do_test: %.ml all
+	./fouine $(OPT) $<
 
 # ocamlbuild -yaccflag -v -lib unix main.native

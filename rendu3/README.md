@@ -2,15 +2,16 @@
 
 ## Utilisation
 
-pour compiler, lancer
+Pour compiler, lancer
 `make`
 
-pour exécuter, lancer
+Pour exécuter, lancer
 
 `./fouine [-options] fichier.ml`
 
 Pour connaître la liste des options, faire `./fouine --help`
 
+Pour lancer les tests, faire `make test [OPT="-options"]`. Cela exéctera `./fouine OPT fichier.ml` pour chaque fichier test présent. Par défaut les options sont `-cps -autotest`.
 
 ## Remarques
 
@@ -51,7 +52,7 @@ exprimer les mêmes choses, mais avec plus de parenthèses qu'en OCaml.
 
 ## Tests
 
-Les tests sont répartis en trois dossiers : debutant, intermediaire, avance (les mêmes qu'au rendu précédent) et exceptions
+Les tests sont répartis en trois dossiers : debutant, intermediaire, avance (les mêmes qu'au rendu précédent), exceptions et transformation
 
 ### debutant
 
@@ -106,3 +107,7 @@ Les tests sont répartis en trois dossiers : debutant, intermediaire, avance (le
 - `raise_simple.ml` exception simple, non rattrapée : le dernière ligne n'est jamais exécutée
 
 - `raise1.ml` excpetion avec matching d'une liste au rattrapage
+
+### transformation
+
+- `collision_k_ident.ml` échoue sans transfomation mais fonctionne avec : on utilise un identifiant qui sera utilisé lors de la transformation pour représenter une continuation
