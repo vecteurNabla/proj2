@@ -144,7 +144,7 @@ let exec () =
         print_newline ();
         if 0 = Sys.command
                  ("[ \"$(printf \"%b\n%b\" "
-                  ^ "\"let prInt i k = print_int i; print_newline (); k i\n;;\n\" "
+                  ^ "\"let prInt i (k, kE) = print_int i; print_newline (); k i\n;;\n\" "
                   ^  (if !std_input then
                         "\"$(printf \"%b\" \""
                         ^ in_from_stdin
