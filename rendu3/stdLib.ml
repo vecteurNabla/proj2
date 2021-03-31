@@ -64,20 +64,20 @@ let _neq1 v m v' = ~& (Bool (v <> v'))
 let _neq m v = Val (StdLib (_neq1 v))
 
 let doubles =
-  ("(+)", StdLib (arithop ( + )))::
-  ("(*)", StdLib (arithop ( * )))::
-  ("(-)", StdLib (arithop ( - )))::
-  ("(/)", StdLib (arithop ( / )))::
+  ("( + )", StdLib (arithop ( + )))::
+  ("( * )", StdLib (arithop ( * )))::
+  ("( - )", StdLib (arithop ( - )))::
+  ("( / )", StdLib (arithop ( / )))::
 
-  ("(&&)", StdLib (boolop ( && )))::
-  ("(||)", StdLib (boolop ( || )))::
+  ("( && )", StdLib (boolop ( && )))::
+  ("( || )", StdLib (boolop ( || )))::
 
-  ("(<=)", StdLib (cmp ( <= )))::
-  ("(>=)", StdLib (cmp ( >= )))::
-  ("(<)", StdLib (cmp ( < )))::
-  ("(>)", StdLib (cmp ( > )))::
-  ("(=)", StdLib _eq)::
-  ("(<>)", StdLib _neq)::
+  ("( <= )", StdLib (cmp ( <= )))::
+  ("( >= )", StdLib (cmp ( >= )))::
+  ("( < )", StdLib (cmp ( < )))::
+  ("( > )", StdLib (cmp ( > )))::
+  ("( = )", StdLib _eq)::
+  ("( <> )", StdLib _neq)::
   []
 
 (* fonctions traduites *)

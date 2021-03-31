@@ -12,5 +12,5 @@ let y3 = a * b in
 let y4 = b / a in
 
 if x1=y1 && x2=y2 && x3=y3 && x4=y4 then
-  prInt ( prInt(a*-1) + prInt (4*10 - -(-6/-3)))
+  prInt ( prInt(a* -1) + prInt (4*10 - -(-6/ -3)))
 else prInt 666

@@ -1,6 +1,6 @@
 open Expr
 
-let (~+) s = "x4V13r_L3r0y" ^ s
+let (~+) s = "" ^ s
 
 let arg_init main_transform =
   Let( Ident "main_transform",

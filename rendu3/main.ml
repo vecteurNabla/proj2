@@ -145,8 +145,8 @@ let exec () =
         if 0 = Sys.command
                  ("[ \"$(printf \"%b\n%b\n%b\n%b\" "
                   ^ "\"let prInt i k = print_int i; print_newline (); k i\n;;\n\" "
-                  ^ "\"let " ^ (Transformation.(~+) "fst = fst\n;;\n\" ")
-                  ^ "\"let " ^ (Transformation.(~+) "snd = snd\n;;\n\" ")
+                  (* ^ "\"let " ^ (Transformation.(~+) "fst = fst\n;;\n\" ")
+                   * ^ "\"let " ^ (Transformation.(~+) "snd = snd\n;;\n\" ") *)
                   ^  (if !std_input then
                         "\"$(printf \"%b\" \""
                         ^ in_from_stdin

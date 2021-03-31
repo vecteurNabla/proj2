@@ -112,7 +112,7 @@ expression:			    /* règles de grammaire pour les expressions */
 	{ Try(e, p, e1) }
   | MATCH expression WITH pattern_matching                  { Match($2, $4) }
   | FUNCTION pattern_matching
-	{ Fun(Ident "@", Match(Pattern (Ident "@"), $2)) }
+	{ Fun(Ident (Transformation.(~+) "x"), Match(Expr.(~~) (Transformation.(~+) "x"), $2)) }
   | l = reverse_separated_nonempty_llist(CONS, atom_expr); CONS; a = atom_expr /* il faudrait remplacer atom_expr par simpl_expr */
 	{ List.fold_left (fun x b -> Cons(b, x)) a l }
 ;
@@ -141,18 +141,18 @@ expr_infix:
   | expression; o = op; expression        { App(App( ~~ o, $1), $3) }
 ;
 %inline op:
-  | PLUS  {"(+)"}
-  |	TIMES {"(*)"}
-  |	MINUS {"(-)"}
-  |	DIV	  {"(/)"}
-  |	AND	  {"(&&)"}
-  |	OR	  {"(||)"}
-  |	LEQ	  {"(<=)"}
-  |	GEQ	  {"(>=)"}
-  |	LT	  {"(<)"}
-  |	GT	  {"(>)"}
-  |	EQUAL {"(=)"}
-  |	NEQ	  {"(<>)"}
+  | PLUS  {"( + )"}
+  |	TIMES {"( * )"}
+  |	MINUS {"( - )"}
+  |	DIV	  {"( / )"}
+  |	AND	  {"( && )"}
+  |	OR	  {"( || )"}
+  |	LEQ	  {"( <= )"}
+  |	GEQ	  {"( >= )"}
+  |	LT	  {"( < )"}
+  |	GT	  {"( > )"}
+  |	EQUAL {"( = )"}
+  |	NEQ	  {"( <> )"}
 ;
 
 
