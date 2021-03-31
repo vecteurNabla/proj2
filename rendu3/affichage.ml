@@ -43,7 +43,7 @@ and affiche_expr_code e =
   | Pattern x -> print_string (pattern_to_string x)
   | Let(x,e1 ,e2) -> aff_aux ("let " ^ (pattern_to_string x)  ^ " = ")
                       e1 " in " e2 ""
-  | Fun(x,e) -> aff_aux "fun " (Pattern x) " -> " e ""
+  | Fun(x,e) -> aff_aux "(fun " (Pattern x) " -> " e ")"
   | Rec(x, e, e') -> aff_aux ("let rec " ^ (pattern_to_string x) ^ " = " ) e " in " e' ""
 
   | App(Fun _ as e1, e2) -> aff_aux "(" e1 ") (" e2 ")"
