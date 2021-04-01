@@ -12,8 +12,8 @@ let rec pattern_to_string = function
   | Under -> "_"
   | Ident x -> x
   | PConst c -> const_to_string c
-  | PCpl (x,y) -> "(" ^ pattern_to_string x ^ "," ^ pattern_to_string y ^")"
-  | PList (x,y) -> pattern_to_string x ^ "::" ^ pattern_to_string y
+  | PCpl (x,y) -> "(" ^ pattern_to_string x ^ "," ^ pattern_to_string y ^ ")"
+  | PList (x,y) -> "(" ^pattern_to_string x ^ "::" ^ pattern_to_string y ^ ")"
 
 let rec affiche_val = function
   | Const c -> print_string (const_to_string c)
@@ -44,9 +44,8 @@ and affiche_expr_code e =
   | Let(x,e1 ,e2) -> aff_aux ("let " ^ (pattern_to_string x)  ^ " = ")
                       e1 " in " e2 ""
   | Fun(x,e) -> aff_aux "(fun " (Pattern x) " -> " e ")"
-  | Rec(x, e, e') -> aff_aux ("let rec " ^ (pattern_to_string x) ^ " = " ) e " in " e' ""
+  | Rec(x, e, e') -> aff_aux ("(let rec " ^ (pattern_to_string x) ^ " = " ) e " in " e' ")"
 
-  | App(Fun _ as e1, e2) -> aff_aux "(" e1 ") (" e2 ")"
   | App(e1,e2) -> aff_aux "" e1 " (" e2 ")"
 
   | Cpl(e1,e2) -> aff_aux "(" e1 "," e2 ")"
@@ -60,8 +59,9 @@ and affiche_expr_code e =
     end
 
   | If(b,e1,e2) -> begin
-      aff_aux "if " b " then " e1 " else " ;
-      affiche_expr_code e2
+      aff_aux "(if " b " then " e1 " else " ;
+      affiche_expr_code e2 ;
+      print_string ")"
     end
 
   | Match(e,l) -> begin

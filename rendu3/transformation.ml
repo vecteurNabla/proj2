@@ -1,23 +1,14 @@
 open Expr
 
-let (~+) s = "" ^ s
+let (~+) s = "_" ^ s
 
-let arg_init main_transform =
-  Let( Ident "main_transform",
-       main_transform,
-       App(
-         ~~ "main_transform",
-         Cpl(
-           Fun ( Ident ~+ "x", ~~ ~+ "x" ),
-           Fun ( Ident ~+ "x", ~~ ~+ "x" )
-         )
-       )
-     )
-
+let id = Fun ( Ident ~+ "x", ~~ ~+ "x" )
+let iid = Cpl(id, id)
 
 let depth = ref 0
 
 let rec transform e =
+  (* : do not tranform = pattern que l'on ne transforme pas *)
   (* raccourcis utiles *)
   incr depth ;
   let k_str = ~+ "k" ^ string_of_int !depth in
@@ -48,7 +39,56 @@ let rec transform e =
 
   Fun( pkkE , begin
       match e with
-      | Val _ | Pattern _ -> App(k, e)
+      | Pattern p -> begin
+          try                     (* traduction des fonctions de la stdlib à 1 argt *)
+            let _ = Eval.find_pattern StdLib.simples p in
+            App(
+              k,
+              Fun(
+                Ident ~+ "v",
+                Fun(
+                  pkkE,
+                  App(
+                    k,
+                    App(e, ~~ ~+ "v" )
+                  )
+                )
+              )
+            )
+          with Eval.Unbound _ | Eval.Not_expected _ -> begin
+              try                 (* traduction des fonctions de la stdlib à 2 argts *)
+                let _ = Eval.find_pattern StdLib.doubles p in
+                App(
+                  k,
+                  Fun(
+                    Ident ~+ "v1",
+                    Fun(
+                      pkkE,
+                      App(
+                        k,
+                        Fun(
+                          Ident ~+ "v2",
+                          Fun(
+                            pkkE,
+                            App(
+                              k,
+                              App(
+                                App(e, ~~ ~+ "v1" ),
+                                ~~ ~+ "v2"
+                              )
+                            )
+                          )
+                        )
+                      )
+                    )
+                  )
+                )
+              with Eval.Unbound _ | Eval.Not_expected _ -> (* traduction des patterns classiques *)
+                App(k, e)
+            end
+        end
+
+      | Val _ -> App(k, e)
 
       | Cpl(e1,e2) ->
         two_expr e1 e2 begin
@@ -66,21 +106,64 @@ let rec transform e =
 
       | Fun(x,e) -> App(k, Fun(x, transform e))
 
+      (* | Rec(f, e1, e2) ->
+       *   App(
+       *     Fun(
+       *       f,
+       *       transform e1
+       *     ),
+       *     Cpl(
+       *       Fun( Ident ~+ "v",
+       *            Rec(f,
+       *                App(
+       *                  ~~ ~+ "v",
+       *                  Pattern f
+       *                ),
+       *                App(
+       *                  transform e2,
+       *                  kkE
+       *                )
+       *               )
+       *          ),
+       *       kE
+       *     )
+       *   ) *)
+      (* | Rec(f, e1, e2) ->
+       *   App(
+       *     transform e1,
+       *     Cpl(
+       *       Fun( Ident ~+ "v",
+       *            Rec(f, ~~ ~+ "v",
+       *                App(
+       *                  transform e2,
+       *                  kkE
+       *                )
+       *               )
+       *          ),
+       *       kE
+       *     )
+       *   ) *)
+      (* | Rec(f, e1, e2) ->
+       *   App(
+       *     Rec(
+       *       f,
+       *       transform f e1,
+       *       Pattern f
+       *     ),
+       *     Cpl(
+       *       Fun(f, App(transform e2, kkE)),
+       *       kE
+       *     )
+       *   ) *)
       | Rec(f, e1, e2) ->
         App(
           transform e1,
           Cpl(
-            Fun( Ident ~+ "v",
-                 Rec(f, ~~ ~+ "v",
-                     App(
-                       transform e2,
-                       kkE
-                     )
-                    )
-               ),
+            Fun(f, App(transform e2, kkE)),
             kE
           )
         )
+
       | App(e1,e2) ->
         two_expr e2 e1 begin
           App(
@@ -92,18 +175,12 @@ let rec transform e =
         end
 
        | Seq(e1,e2) ->
-         App(
-           transform e1,
-           Cpl(
-             Fun( Under,
-                  App(
-                    transform e2,
+         two_expr e1 e2 begin
+           App(
+             ~~ ~+ "snd" ,
                     kkE
-                  )
-                ),
-             kE
            )
-         )
+         end
 
        | Aff(e1, e2) ->
          two_expr e2 e1 begin
@@ -176,4 +253,13 @@ and transform_match_list kkE = function
   | [] -> []
   | (x,e)::t -> (x, App( transform e, kkE)) :: transform_match_list kkE t
 
-let transform_stdlib f = fun m varg -> transform (f m varg)
+(* let transform_stdlib f = fun m varg -> transform (f m varg) *)
+
+let main_transform e =
+  Let( Ident "main_transform",
+       transform e,
+       App(
+         ~~ "main_transform",
+         iid
+       )
+     )

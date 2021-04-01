@@ -52,7 +52,7 @@ let calc result =
     end ;
 
     if !cps then begin
-      let main_transform = Transformation.arg_init (Transformation.transform result) in
+      let main_transform = Transformation.main_transform result in
         if !outcode then begin
           affiche_expr_code main_transform ; print_newline ()
         end ;
@@ -66,7 +66,7 @@ let calc result =
         end ;
 
         if !run then begin
-          let v = compile StdLib.stdlib_transform main_transform
+          let v = compile StdLib.stdlib main_transform
           in
           if !outval then begin
             affiche_val v ; print_newline ()
@@ -143,8 +143,8 @@ let exec () =
         else print_string "NO";
         print_newline ();
         if 0 = Sys.command
-                 ("[ \"$(printf \"%b\n%b\" "
-                  ^ "\"let prInt i (k, kE) = print_int i; print_newline (); k i\n;;\n\" "
+                 ("[ \"$(printf \"%b\n%b\n%b\n%b\" "
+                  ^ "\"let prInt i = print_int i; print_newline (); i\n;;\n\" "
                   ^  (if !std_input then
                         "\"$(printf \"%b\" \""
                         ^ in_from_stdin

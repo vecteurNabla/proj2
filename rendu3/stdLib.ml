@@ -80,59 +80,5 @@ let doubles =
   ("( <> )", StdLib _neq)::
   []
 
-(* fonctions traduites *)
-let t = Transformation.transform_stdlib
-
-let t_arithop op = t begin
-    fun m -> function
-  | Const (Int i) -> Val (StdLib (t (arithop1 op i)))
-  | _ -> raise (Not_expected "un entier")
-end
-
-let t_boolop op = t begin
-    fun m -> function
-  | Const (Bool i) -> Val (StdLib (t (boolop1 op i)))
-  | _ -> raise (Not_expected "un booléen")
-end
-
-let t_cmp op = t begin
-    fun m -> function
-  | Const (Int i) -> Val (StdLib (t (cmp1 op i)))
-  | _ -> raise (Not_expected "un entier")
-end
-
-let _t_eq = t begin
-    fun m v -> Val (StdLib (t (_eq1 v)))
-end
-
-let _t_neq = t begin
-    fun m v -> Val (StdLib ( t(_neq1 v)))
-end
-
-let t_doubles =
-  ("(+)", StdLib (t_arithop ( + )))::
-  ("(*)", StdLib (t_arithop ( * )))::
-  ("(-)", StdLib (t_arithop ( - )))::
-  ("(/)", StdLib (t_arithop ( / )))::
-
-  ("(&&)", StdLib (t_boolop ( && )))::
-  ("(||)", StdLib (t_boolop ( || )))::
-
-  ("(<=)", StdLib (t_cmp ( <= )))::
-  ("(>=)", StdLib (t_cmp ( >= )))::
-  ("(<)", StdLib (t_cmp ( < )))::
-  ("(>)", StdLib (t_cmp ( > )))::
-  ("(=)", StdLib _t_eq)::
-  ("(<>)", StdLib _t_neq)::
-  []
-
 let stdlib =
  simples @ doubles
-
-let rec transform = function
-  | [] -> []
-  | (name, StdLib f)::t -> (name, StdLib (Transformation.transform_stdlib f)) :: transform t
-  | h::t -> h::transform t
-
- let stdlib_transform =
-   (transform simples) @ t_doubles

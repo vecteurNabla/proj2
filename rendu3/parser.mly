@@ -137,7 +137,7 @@ atom_expr:
 ;
 
 expr_infix:
-  | MINUS expression %prec UMINUS         { App(App( ~~ "(-)", ~& (Int 0)), $2) }
+  | MINUS expression %prec UMINUS         { App(App( ~~ "( - )", ~& (Int 0)), $2) }
   | expression; o = op; expression        { App(App( ~~ o, $1), $3) }
 ;
 %inline op:
