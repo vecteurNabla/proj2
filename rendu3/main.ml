@@ -131,7 +131,9 @@ let exec () =
         let in_from_stdin = if !std_input then read_stdin ()
                             else "" in
         if 0 = Sys.command
-                 ("[ \"$(printf \"%b\n%b\" \"let prInt i = print_int i; print_newline (); i\n;;\n\" "
+                 ("[ \"$(printf \"%b\n%b\n%b\" "
+                  ^ "\"let prInt i = print_int i; print_newline (); i\n;;\n\" "
+                  ^ "\"exception E of int\n;;\n "
                   ^  (if !std_input then "\"" ^ in_from_stdin ^"\""
                       else
                         "\"$(cat " ^ !nom_fichier ^ ")\""
