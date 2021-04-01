@@ -1,4 +1,6 @@
-# FouineJN - rendu 3 - aril 2021
+# FouineJN - rendu 3 - avril 2021
+
+Robin Jourde & Nicolas Nardino
 
 ## Utilisation
 
@@ -45,7 +47,7 @@ OCaml.
 
 La traduction du `let rec` m'a posé qqs soucis. La solution proposée
 fonctionne mais pour être acceptée par OCaml, il faut appliquer les
-bêta-réductions. En effet sinon on se retrouve avec :
+bêta-réductions. En effet sinon on se retrouve avec des choses de la forme :
 
 ```ocaml
 let rec f = ... (fun k -> k f) ...
@@ -54,7 +56,21 @@ Les bêta-réductions permettent de faire disparaitre ces formes.
 
 ## Bêta-réduction
 
-todo
+Les options `-reduc` et `-optim` permettent de faire subir au code des bêta-réductions pour le condenser (cf. `--help` pour plus de détails sur ces options).
+
+La fonction de réduction, située dans `reduction.ml`, détecte les situations de la forme :
+
+```ocaml
+(fun x -> e) e'
+```
+
+où `e'` est un expression "irréductible" ie est une valeur, un pattern, une fonction, un uple ou une liste d'irréductibles.
+
+Elle parcourt ensuite `e` pour y remplacer toutes les occurences *libres* de `x` par `e'`.
+
+Les deux opérations sont en fait réalisées en même temps, pour ce faire on maintient à jour lors du parcours une liste de couples `(pattern à remplacer, expression irréductible)` que l'on utilise pour savoir si et par quoi remplacer les pattern rencontrés.
+
+Pour garantir que l'on ne remplace que les occurences libres, on retire de la liste les pattern rencontrés dans des lieurs (`fun`, `let`, `match`).
 
 ## Répartition du travail
 
@@ -73,7 +89,9 @@ todo
 ## Tests
 
 Les tests sont répartis en 5 dossiers : debutant, intermediaire,
-avance (les mêmes qu'au rendu précédent), exceptions et transformation
+avance (les mêmes qu'au rendu précédent), exceptions et transformation.
+
+On notera que `make test` ne renvoie pas que des `OK`, cela est dû aux spécificités de FouineJN par rapport à OCaml. Voir les descriptions ci-dessous pour plus d'informations.
 
 ### debutant
 
