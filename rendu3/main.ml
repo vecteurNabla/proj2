@@ -17,6 +17,8 @@ let run = ref false
 let autotest = ref false
 let optim = ref false
 
+let reduc = ref false
+
 let compile env e =
   let m = Memory.empty_mem () in
   let k_init v = v in
@@ -28,7 +30,7 @@ let compile env e =
   in
   eval env m e k_init k_break
 
-  
+
 let read_stdin () =
   let try_read () =
     try
@@ -40,7 +42,7 @@ let read_stdin () =
     | None -> List.fold_left (fun a b -> b ^ a) "" acc
   in (loop [])
 
-   
+
 let calc result =
   try
     if !tree then begin
@@ -52,7 +54,7 @@ let calc result =
     end ;
 
     if !cps then begin
-      let main_transform = Transformation.main_transform result in
+      let main_transform = if !optim then Reduction.reduction (Transformation.main_transform result) else Transformation.main_transform result in
         if !outcode then begin
           affiche_expr_code main_transform ; print_newline ()
         end ;
@@ -110,8 +112,10 @@ let exec () =
     ("-outcode", Arg.Set outcode, "Cette option, combinée avec l’option -cps, aura pour effet d’afficher à l’écran le programme résultant de la transformation, sans l’exécuter");
     ("-outcode-tree", Arg.Set outcode_tree, "Cette option, combinée avec l’option -cps, aura pour effet d’afficher à l’écran le programme résultant de la transformation sous forme d'arbre, sans l’exécuter");
     ("-run", Arg.Set run, "Cette option, combinée avec l’option -cps, aura pour effet d’exécuter avec fouine le programme résultant de la traduction");
-    ("-autotest", Arg.Set autotest, "Cette option, combinée avec l’option -cps, aura pour effet de comparer différentes exécutions du programme fourni en entrée [OPTION NON PRISE EN CHARGE A L'HEURE ACTUELLE]");
-    ("-optim", Arg.Set optim, "Cette option améliore la traduction CPS en appliquant les simplifications décrites dans les notes de cours [OPTION NON PRISE EN CHARGE A L'HEURE ACTUELLE]")
+    ("-autotest", Arg.Set autotest, "Cette option, combinée avec l’option -cps, aura pour effet de comparer différentes exécutions du programme fourni en entrée");
+    ("-optim", Arg.Set optim, "Cette option améliore la traduction CPS en appliquant des bêta-réductions");
+    ("-reduc", Arg.Set reduc, "Prétraite le code en entrée en appliquant des bêta-réductions");
+    ("-prefix", Arg.String (fun s -> Transformation.prefix := s), "Redéfinit le préfixe des variables introduites par l'interprète, par défaut \"x4V13r_L3r0y\"")
   ] in
 
   Arg.parse
@@ -148,9 +152,9 @@ let exec () =
                   ^  (if !std_input then
                         "\"$(printf \"%b\" \""
                         ^ in_from_stdin
-                        ^ "\" | ./fouine -cps -outcode -stdin)\""
+                        ^ "\" | ./fouine -cps -optim -outcode -stdin)\""
                       else
-                        "\"$(./fouine -cps -outcode " ^ !nom_fichier ^ ")\""
+                        "\"$(./fouine -cps -optim -outcode " ^ !nom_fichier ^ ")\""
                      ) ^ " | ocaml -stdin)\" = \"$("
                   ^  (if !std_input then "printf \"%b\n\" \""
                                          ^ in_from_stdin
@@ -189,7 +193,7 @@ let exec () =
       in
       let parse () = Parser.main Lexer.token lexbuf_file in
       let result = parse () in
-      calc result
+      calc (if !reduc then Reduction.reduction result else result)
   with _ -> print_string "erreur de saisie\n"
 
 

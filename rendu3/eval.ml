@@ -36,7 +36,7 @@ let ( !** ) v = match v with
   | VList (_,v2) -> v2
   | _ -> raise (Not_expected "une liste non vide" )
 
-(* trouve dans l'environnemnt la valeur correspondant au nom : value *)
+(* trouve dans l'environnement la valeur correspondant au nom : value *)
 let rec find_var x = function
   | [] -> raise (Unbound x)
   | h::_ when fst h = x -> snd h

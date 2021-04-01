@@ -65,7 +65,7 @@ and affiche_expr_code e =
     end
 
   | Match(e,l) -> begin
-      print_string "match " ;
+      print_string "(match " ;
       affiche_expr_code e ;
       print_string " with " ;
       List.iter
@@ -74,7 +74,8 @@ and affiche_expr_code e =
            affiche_expr_code e ;
            print_string " " ;
         )
-        l
+        l ;
+      print_string ")"
     end
 
   | Cons(e1,e2) -> aff_aux "(" e1 ")::(" e2 ")"

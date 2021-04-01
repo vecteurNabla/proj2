@@ -1,9 +1,9 @@
 open Expr
 
-let (~+) s = "_" ^ s
+let prefix = ref "x4V13r_L3r0y"
 
-let id = Fun ( Ident ~+ "x", ~~ ~+ "x" )
-let iid = Cpl(id, id)
+let id () = Fun ( Ident (!prefix ^ "x"), ~~ (!prefix ^ "x") )
+let iid () = Cpl(id (), id ())
 
 let depth = ref 0
 
@@ -11,8 +11,10 @@ let rec transform e =
   (* : do not tranform = pattern que l'on ne transforme pas *)
   (* raccourcis utiles *)
   incr depth ;
-  let k_str = ~+ "k" ^ string_of_int !depth in
-  let kE_str = ~+ "kE" ^ string_of_int !depth in
+  let suffix = string_of_int !depth in
+  let (~+) s = !prefix ^ s ^ suffix in
+  let k_str = ~+ "k" in
+  let kE_str = ~+ "kE" in
   let k = ~~ k_str in
   let kE = ~~ kE_str in
   let pkkE = PCpl(Ident k_str ,Ident kE_str) in
@@ -61,20 +63,20 @@ let rec transform e =
                 App(
                   k,
                   Fun(
-                    Ident ~+ "v1",
+                    Ident ~+ "v",
                     Fun(
                       pkkE,
                       App(
                         k,
                         Fun(
-                          Ident ~+ "v2",
+                          Ident ~+ "w",
                           Fun(
                             pkkE,
                             App(
                               k,
                               App(
-                                App(e, ~~ ~+ "v1" ),
-                                ~~ ~+ "v2"
+                                App(e, ~~ ~+ "v" ),
+                                ~~ ~+ "w"
                               )
                             )
                           )
@@ -106,58 +108,22 @@ let rec transform e =
 
       | Fun(x,e) -> App(k, Fun(x, transform e))
 
-      (* | Rec(f, e1, e2) ->
-       *   App(
-       *     Fun(
-       *       f,
-       *       transform e1
-       *     ),
-       *     Cpl(
-       *       Fun( Ident ~+ "v",
-       *            Rec(f,
-       *                App(
-       *                  ~~ ~+ "v",
-       *                  Pattern f
-       *                ),
-       *                App(
-       *                  transform e2,
-       *                  kkE
-       *                )
-       *               )
-       *          ),
-       *       kE
-       *     )
-       *   ) *)
-      (* | Rec(f, e1, e2) ->
-       *   App(
-       *     transform e1,
-       *     Cpl(
-       *       Fun( Ident ~+ "v",
-       *            Rec(f, ~~ ~+ "v",
-       *                App(
-       *                  transform e2,
-       *                  kkE
-       *                )
-       *               )
-       *          ),
-       *       kE
-       *     )
-       *   ) *)
-      (* | Rec(f, e1, e2) ->
-       *   App(
-       *     Rec(
-       *       f,
-       *       transform f e1,
-       *       Pattern f
-       *     ),
-       *     Cpl(
-       *       Fun(f, App(transform e2, kkE)),
-       *       kE
-       *     )
-       *   ) *)
       | Rec(f, e1, e2) ->
         App(
-          transform e1,
+          Rec(
+            f,
+            App(
+              transform e1,
+              iid ()
+            ),
+            Fun(
+              pkkE,
+              App(
+                k,
+                Pattern f
+              )
+            )
+          ),
           Cpl(
             Fun(f, App(transform e2, kkE)),
             kE
@@ -253,13 +219,11 @@ and transform_match_list kkE = function
   | [] -> []
   | (x,e)::t -> (x, App( transform e, kkE)) :: transform_match_list kkE t
 
-(* let transform_stdlib f = fun m varg -> transform (f m varg) *)
-
 let main_transform e =
   Let( Ident "main_transform",
        transform e,
        App(
          ~~ "main_transform",
-         iid
+         iid ()
        )
      )

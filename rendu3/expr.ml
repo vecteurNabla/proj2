@@ -51,6 +51,18 @@ and expr =
 
 and pattern_matching = (pattern*expr) list
 
+let rec irreductible e = match e with
+  | Val _
+  | Pattern _
+  | Fun _
+    -> true
+
+  | Cpl(e1, e2)
+  | Cons(e1, e2)
+    -> irreductible e1 && irreductible e2
+
+  | _ -> false
+
 (* cree une expression a partir ... *)
 (* ... d'une constante *)
 let (~&) c = Val (Const c)

@@ -38,21 +38,37 @@ filtrage (dans notre grammaire, `atom_expr` au lieu de
 membre droit d'un cas de filtrage dans la plupart des cas. On peut donc
 exprimer les mêmes choses, mais avec plus de parenthèses qu'en OCaml.
 
+
+### OCaml & traduction du `let rec`
+
+La traduction du `let rec` m'a posé qqs soucis. La solution proposée fonctionne mais pour être acceptée par OCaml, il faut appliquer les bêta-réductions. En effet sinon on se retrouve avec :
+
+```ocaml
+let rec f = ... (fun k -> k f) ...
+```
+Les bêta-réductions permettent de faire disparaitre ces formes.
+
+## Bêta-réduction
+
+todo
+
 ## Répartition du travail
 
-**Nicolas** :
+### Nicolas
 
 - passage de `eval` en cps
 
 - implémentation de l'autotest
 
-**Robin** :
+### Robin
 
 - traduction et options associées
 
+- réduction
+
 ## Tests
 
-Les tests sont répartis en trois dossiers : debutant, intermediaire, avance (les mêmes qu'au rendu précédent), exceptions et transformation
+Les tests sont répartis en 5 dossiers : debutant, intermediaire, avance (les mêmes qu'au rendu précédent), exceptions et transformation
 
 ### debutant
 
@@ -110,4 +126,4 @@ Les tests sont répartis en trois dossiers : debutant, intermediaire, avance (le
 
 ### transformation
 
-- `collision_k_ident.ml` échoue sans transfomation mais fonctionne avec : on utilise un identifiant qui sera utilisé lors de la transformation pour représenter une continuation
+- `collision_k_ident.ml` on utilise un identifiant qui sera utilisé lors de la transformation pour représenter une continuation, cela engendre une erreur pour ocmal quin'arrive pas à typer

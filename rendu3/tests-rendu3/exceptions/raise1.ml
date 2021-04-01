@@ -3,5 +3,5 @@ try
   let x = 1 in
   if f x > 0 then
     raise (E [1;2;5])
-  else prInt f x
+  else prInt (f x)
 with E x::_ -> x

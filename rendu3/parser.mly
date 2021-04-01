@@ -112,7 +112,7 @@ expression:			    /* règles de grammaire pour les expressions */
 	{ Try(e, p, e1) }
   | MATCH expression WITH pattern_matching                  { Match($2, $4) }
   | FUNCTION pattern_matching
-	{ Fun(Ident (Transformation.(~+) "x"), Match(Expr.(~~) (Transformation.(~+) "x"), $2)) }
+	{ Fun(Ident (!Transformation.prefix ^ "x"), Match(Expr.(~~) (!Transformation.prefix ^ "x"), $2)) }
   | l = reverse_separated_nonempty_llist(CONS, atom_expr); CONS; a = atom_expr /* il faudrait remplacer atom_expr par simpl_expr */
 	{ List.fold_left (fun x b -> Cons(b, x)) a l }
 ;
