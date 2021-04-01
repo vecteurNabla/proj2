@@ -56,21 +56,31 @@ Les bêta-réductions permettent de faire disparaitre ces formes.
 
 ## Bêta-réduction
 
-Les options `-reduc` et `-optim` permettent de faire subir au code des bêta-réductions pour le condenser (cf. `--help` pour plus de détails sur ces options).
+Les options `-reduc` et `-optim` permettent de faire subir au code des
+bêta-réductions pour le condenser (cf. `--help` pour plus de détails
+sur ces options).
 
-La fonction de réduction, située dans `reduction.ml`, détecte les situations de la forme :
+La fonction de réduction, située dans `reduction.ml`, détecte les
+situations de la forme :
 
 ```ocaml
 (fun x -> e) e'
 ```
 
-où `e'` est un expression "irréductible" ie est une valeur, un pattern, une fonction, un uple ou une liste d'irréductibles.
+où `e'` est un expression "irréductible" ie est une valeur, un
+pattern, une fonction, un uple ou une liste d'irréductibles.
 
-Elle parcourt ensuite `e` pour y remplacer toutes les occurences *libres* de `x` par `e'`.
+Elle parcourt ensuite `e` pour y remplacer toutes les occurences
+*libres* de `x` par `e'`.
 
-Les deux opérations sont en fait réalisées en même temps, pour ce faire on maintient à jour lors du parcours une liste de couples `(pattern à remplacer, expression irréductible)` que l'on utilise pour savoir si et par quoi remplacer les pattern rencontrés.
+Les deux opérations sont en fait réalisées en même temps, pour ce
+faire on maintient à jour lors du parcours une liste de couples
+`(pattern à remplacer, expression irréductible)` que l'on utilise pour
+savoir si et par quoi remplacer les pattern rencontrés.
 
-Pour garantir que l'on ne remplace que les occurences libres, on retire de la liste les pattern rencontrés dans des lieurs (`fun`, `let`, `match`).
+Pour garantir que l'on ne remplace que les occurences libres, on
+retire de la liste les pattern rencontrés dans des lieurs (`fun`,
+`let`, `match`).
 
 ## Répartition du travail
 
