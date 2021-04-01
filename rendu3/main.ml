@@ -122,7 +122,7 @@ let exec () =
     ""; (* message d'accueil *)
 
   try
-    if !autotest then
+    if !autotest && !cps then
       begin
         let in_from_stdin = if !std_input then read_stdin ()
                             else "" in
@@ -158,6 +158,25 @@ let exec () =
                       else
                         "./fouine " ^ !nom_fichier
                      ) ^ ")\" ]")
+        then
+          print_string "OK"
+        else print_string "NO";
+        print_newline ();
+        if 0 = Sys.command ("[ \"$("
+                            ^ (if !std_input then
+                                 "\"$(printf \"%b\" \""
+                                 ^ in_from_stdin
+                                 ^ ")\" | ./fouine -cps -run -stdin)\""
+                               else
+                                 "./fouine -cps -run " ^ !nom_fichier
+                              ) ^ ")\" = \"$("
+                            ^ (if !std_input then
+                                 "\"$(printf \"%b\" \""
+                                 ^ in_from_stdin
+                                 ^ ")\" | ./fouine -stdin)\""
+                               else
+                                 "./fouine -run " ^ !nom_fichier
+                              ) ^  ")\" ]")
         then
           print_string "OK"
         else print_string "NO";
