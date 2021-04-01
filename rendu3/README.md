@@ -158,6 +158,10 @@ couple ; ce dernier sera composé d'un entier et d'un couple d'entiers.
 
 - `raise1.ml` excpetion avec matching d'une liste au rattrapage
 
+*Remarque* : L'autotest renverra **NO** si des raise ne sont pas
+rattrapés: en effet, notre syntaxe n'est pas identique à celle
+d'OCaml pour les exceptions non rattrapées.
+
 ### transformation
 
 - `collision_k_ident.ml` on utilise un identifiant qui sera utilisé
