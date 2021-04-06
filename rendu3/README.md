@@ -34,14 +34,6 @@ premier filtrage ou le deuxième. Il résoud "arbitrairement" en faveur
 du shift (i.e. la fait rentrer dans le deuxième match), qui est ce
 qu'OCaml fait; ainsi tout se comporte comme on peut s'y attendre
 
-Le dossier "version_restreinte" comporte une demi-solution:
-restreindre ce qui peut arriver à droite d'une flèche dans un cas de
-filtrage (dans notre grammaire, `atom_expr` au lieu de
-`expression`). Cela revient à devoir mettre des parenthèses autour du
-membre droit d'un cas de filtrage dans la plupart des cas. On peut
-donc exprimer les mêmes choses, mais avec plus de parenthèses qu'en
-OCaml.
-
 
 ### OCaml & traduction du `let rec`
 
