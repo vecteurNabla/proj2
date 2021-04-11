@@ -31,6 +31,7 @@
 %right SEQ
 %nonassoc IF
 %right AFF
+%nonassoc REDPIPE
 %left PIPE
 %left COMA
 %right MAPS
@@ -197,7 +198,7 @@ pattern_list_sh:						/* [x_1; ... x_n] */
 ;
 
 pattern_matching:
-  | l = preceded_or_separated_nonempty_llist(PIPE, match_case)
+  | l = preceded_or_separated_nonempty_llist(PIPE, match_case) %prec REDPIPE
 	{ l }
 ;
 match_case:
