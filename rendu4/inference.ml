@@ -26,29 +26,39 @@ let inference e =
   (* max is the highest used number for a type var, in_top_level is
    * true if we are in a top level declaration *)
   let rec inf_aux e t max in_top_level vars = match e with
-    | App(e1, e2) -> (
-      inf_aux e1 (TFun(TVar (max + 1), t)) (max + 1) in_top_level vars;
-      inf_aux e2 (TVar (max+1)) (max + 1) in_top_level vars)
+    | App(e1, e2) -> 
+      let max' = inf_aux e1 (TFun(TVar (max + 1), t)) (max + 1) in_top_level vars in
+      (inf_aux e2 (TVar (max'+1)) (max'+1) in_top_level vars)+1
     | Fun(p, e) -> (
       prob.ct <- (TFun(TVar (max+1), TVar (max+2)), t)::(prob.ct);
       let vars', max' = add_pat_to_tenv p max vars in
       inf_aux e (TVar (max')) (max') in_top_level vars')
     | Pattern p -> (match p with
-                   | Under -> ()
+                   | Under -> max
                    | PConst c -> (match c with
-                                 | Int i -> prob.ct <- (TInt, t)::(prob.ct)
-                                 | Unit -> prob.ct <- (TUnit, t)::(prob.ct)
-                                 | Bool b -> prob.ct <- (TBool, t)::(prob.ct)
+                                 | Int i -> prob.ct <- (TInt, t)::(prob.ct); max
+                                 | Unit -> prob.ct <- (TUnit, t)::(prob.ct); max
+                                 | Bool b -> prob.ct <- (TBool, t)::(prob.ct); max
                                  | Nil ->
                                     prob.ct <- (TList (TVar (max+1)),t)
-                                           ::(prob.ct))
+                                           ::(prob.ct); max+1)
                    | Ident s -> (
                      let ts = is_typed s vars in
+                     prob.ct <- (ts, t)::(prob.ct);
                      if in_top_level then
-                       top_level := (s, ts)::(!top_level))
+                       top_level := (s, ts)::(!top_level)); max
                    | PCpl (p1, p2) -> (
-                     
-                  ))
+                     prob.ct <- (t, TCpl(TVar (max+1), TVar (max+2)))::prob.ct;
+                     let max' = inf_aux (Pattern p1) (TVar (max+1)) (max+2) in_top_level vars in
+                     inf_aux (Pattern p2) (TVar (max+2)) (max') in_top_level vars)
+                   | PList (p1, p2) -> (
+                     prob.ct <- (t, TList(TVar (max+1)))::prob.ct;
+                     let max' = inf_aux (Pattern p1) (TVar (max+1)) (max+1) in_top_level vars in
+                     inf_aux (Pattern p2) (TList (TVar (max+1))) (max') in_top_level vars))
+    | Let (p, e, e') -> (
+      let max' = inf_aux e (TVar (max+1)) (max+1) false vars in
+      let vars', max'' = add_pat_to_tenv p max' vars in
+      inf_aux e' t max'' in_top_level vars')
   in
-  inf_aux e (TVar 0) 0 true;
+  inf_aux e (TVar 0) 0 true [];
   prob, !top_level
