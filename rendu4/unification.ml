@@ -1,6 +1,6 @@
 open Types
 
-let debug x = () (* print_string x  *)
+let debug x =  ()(* print_string x ; flush stdout *)
 
 type symbol = string
 
@@ -10,7 +10,7 @@ type descr =
   | Repr of constr
 
 and constr =
-  | Var
+  | Var of int
   | Op of symbol * shared_types list
 
 (* Et un terme est juste une référence de description *)
@@ -30,7 +30,7 @@ let rec sharing_of_type defined = function
   | TVar x -> begin
       match List.assoc_opt x defined with
       | None ->
-        let t' = ref (Repr Var) in
+        let t' = ref (Repr (Var x)) in
         t' , (x,t')::defined
       | Some t' ->
         t' , defined
@@ -41,9 +41,18 @@ let rec sharing_of_type defined = function
     let t2',defined__ = sharing_of_type defined_ t2 in
     ref (Repr (Op ("fun", [t1'; t2']))), defined__
 
+  | TCpl(t1,t2) ->
+    let t1',defined_ = sharing_of_type defined t1 in
+    let t2',defined__ = sharing_of_type defined_ t2 in
+    ref (Repr (Op ("cpl", [t1'; t2']))), defined__
+
   | TList t ->
     let t',defined_ = sharing_of_type defined t in
     ref (Repr (Op ("list", [t']))), defined_
+
+  | TRef t ->
+    let t',defined_ = sharing_of_type defined t in
+    ref (Repr (Op ("ref", [t']))), defined_
 
   | TInt ->
     ref (Repr (Op ("int", []))), defined
@@ -51,6 +60,8 @@ let rec sharing_of_type defined = function
     ref (Repr (Op ("bool", []))), defined
   | TUnit ->
     ref (Repr (Op ("unit", []))), defined
+  | TExn ->
+    ref (Repr (Op ("exn", []))), defined
 
 (* Cette fonction, dont la description est donnée en énoncé, doit avoir le type : t -> t *)
 let rec repr x = match !x with
@@ -66,14 +77,15 @@ exception Not_unifyable
    descriptions pointées par t1 et t2 sans renvoyer de résultat *)
 let rec unify t1 t2 =
   let r1, r2 = repr t1, repr t2 in
+  if r1 == r2 then () else
   match !r1, !r2 with
   | Link _, _ | _, Link _ -> failwith "err: Link unexpected"
   | Repr rr1, Repr rr2 ->
     begin match rr1,rr2 with
-      | Var, Var when r1 == r2 -> ()
-      | Var, _ -> r1 := Link r2
-      | _, Var -> r2 := Link r1
-      | Op (f,l1), Op (g,l2) when f = g -> List.iter2 unify l1 l2
+      (* | Var _, Var _ when r1 == r2 -> () *)
+      | Var _, _ -> r1 := Link r2
+      | _, Var _ -> r2 := Link r1
+      | Op (f,l1), Op (g,l2) when f = g -> debug (f^"> ") ; List.iter2 unify l1 l2
       | _ ->  raise Not_unifyable
     end
 
@@ -110,26 +122,33 @@ let rec build_megatype defined t1_ t2_ = function
  * en cas d'échec, les excpetions Not_unifyable ou Cyclic_type peuvent être levées
  *)
 let unification (pb:Inference.probleme) =
-  let varc = ref 0 in
+  (* let varc = ref 0 in *)
 
   let defined, t1_, t2_ = build_megatype [] [] [] pb.ct in
   let t1 = ref (Repr (Op ("", t1_))) in
   let t2 = ref (Repr (Op ("", t2_))) in
 
+  debug "ready to unify\n" ;
+
   unify t1 t2 ;
+
+  debug "unification done\n" ;
 
   if cyclic t1 || cyclic t2 then raise Cyclic_type ;
 
   let rec get_type t = match !(repr t) with
     | Link _ -> failwith "it should not be a link\n"
     | Repr r -> begin match r with
-        | Var -> varc := !varc + 1 ; TVar (!varc)
+        | Var x -> (* varc := !varc + 1 ; TVar (!varc) *) TVar x
         | Op("int", []) -> TInt
         | Op("bool", []) -> TBool
         | Op("unit", []) -> TUnit
-        | Op("fun", [u;v]) -> TFun( get_type u, get_type v )
+        | Op("exn", []) -> TExn
         | Op("list", [u]) -> TList( get_type u )
-        | _ -> failwith "unknown operator\n"
+        | Op("ref", [u]) -> TRef( get_type u )
+        | Op("fun", [u;v]) -> TFun( get_type u, get_type v )
+        | Op("cpl", [u;v]) -> TCpl( get_type u, get_type v )
+        | _ -> failwith "unknown operator"
       end
   in
   List.map (fun (v,t) -> (v, get_type t)) defined

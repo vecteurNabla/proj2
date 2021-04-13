@@ -1,7 +1,11 @@
 type types =
+  | TUnit
   | TInt
   | TBool
-  | TFun of types*types
-  | TVar of int
-  | TUnit
+  | TExn
   | TList of types
+  | TRef of types
+  | TFun of types*types
+  | TCpl of types*types
+
+  | TVar of int

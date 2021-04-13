@@ -19,6 +19,9 @@ let optim = ref false
 
 let reduc = ref false
 
+let notypes = ref false
+let showtypes = ref false
+
 let compile env e =
   let m = Memory.empty_mem () in
   let k_init v = v in
@@ -55,25 +58,25 @@ let calc result =
 
     if !cps then begin
       let main_transform = if !optim then Reduction.reduction (Transformation.main_transform result) else Transformation.main_transform result in
-        if !outcode then begin
-          affiche_expr_code main_transform ; print_newline ()
-        end ;
+      if !outcode then begin
+        affiche_expr_code main_transform ; print_newline ()
+      end ;
 
-        if !outcode_tree then begin
-          affiche_expr_tree main_transform ; print_newline ()
-        end ;
+      if !outcode_tree then begin
+        affiche_expr_tree main_transform ; print_newline ()
+      end ;
 
-        if !autotest then begin
-          ()
-        end ;
+      if !autotest then begin
+        ()
+      end ;
 
-        if !run then begin
-          let v = compile StdLib.stdlib main_transform
-          in
-          if !outval then begin
-            affiche_val v ; print_newline ()
-          end
+      if !run then begin
+        let v = compile StdLib.stdlib main_transform
+        in
+        if !outval then begin
+          affiche_val v ; print_newline ()
         end
+      end
     end
 
     else if not !showsrc then begin
@@ -115,89 +118,102 @@ let exec () =
     ("-autotest", Arg.Set autotest, "Cette option, combinée avec l’option -cps, aura pour effet de comparer différentes exécutions du programme fourni en entrée");
     ("-optim", Arg.Set optim, "Cette option améliore la traduction CPS en appliquant des bêta-réductions");
     ("-reduc", Arg.Set reduc, "Prétraite le code en entrée en appliquant des bêta-réductions");
-    ("-prefix", Arg.String (fun s -> Transformation.prefix := s), "Redéfinit le préfixe des variables introduites par l'interprète, par défaut \"x4V13r_L3r0y\"")
+    ("-prefix", Arg.String (fun s -> Transformation.prefix := s), "Redéfinit le préfixe des variables introduites par l'interprète, par défaut \"x4V13r_L3r0y\"");
+    ("-notypes", Arg.Set notypes, "Interprète les programme sans le typer au préalable");
+    ("-showtypes", Arg.Set showtypes, "Affiche le type inféré pour toutes les déclarations en surface, l’expression principale étant désignée par \"-\"")
   ] in
 
   Arg.parse
     optlist
 
     (fun s -> nom_fichier := s) (* fonction a declencher lorsqu'on
-                             * recupere un string qui n'est pas une option *)
+                                 * recupere un string qui n'est pas une option *)
     ""; (* message d'accueil *)
 
-  try
-    if !autotest && !cps then
-      begin
-        let in_from_stdin = if !std_input then read_stdin ()
-                            else "" in
-        if 0 = Sys.command
-                 ("[ \"$(printf \"%b\n%b\n%b\" "
-                  ^ "\"let prInt i = print_int i; print_newline (); i\n;;\n\" "
-                  ^ "\"exception E of int\n;;\n\" "
-                  ^  (if !std_input then "\"" ^ in_from_stdin ^"\""
-                      else
-                        "\"$(cat " ^ !nom_fichier ^ ")\""
-                     ) ^ " | ocaml -stdin)\" = \"$("
-                  ^  (if !std_input then "printf \"%b\n\" \""
-                                         ^ in_from_stdin
-                                         ^ "\" | ./fouine -stdin"
-                      else
-                        "./fouine " ^ !nom_fichier
-                     ) ^ ")\" ]")
-        then
-          print_string "OK"
-        else print_string "NO";
-        print_newline ();
-        if 0 = Sys.command
-                 ("[ \"$(printf \"%b\n%b\n%b\n%b\" "
-                  ^ "\"let prInt i = print_int i; print_newline (); i\n;;\n\" "
-                  ^  (if !std_input then
-                        "\"$(printf \"%b\" \""
-                        ^ in_from_stdin
-                        ^ "\" | ./fouine -cps -optim -outcode -stdin)\""
-                      else
-                        "\"$(./fouine -cps -optim -outcode " ^ !nom_fichier ^ ")\""
-                     ) ^ " | ocaml -stdin)\" = \"$("
-                  ^  (if !std_input then "printf \"%b\n\" \""
-                                         ^ in_from_stdin
-                                         ^ "\" | ./fouine -stdin"
-                      else
-                        "./fouine " ^ !nom_fichier
-                     ) ^ ")\" ]")
-        then
-          print_string "OK"
-        else print_string "NO";
-        print_newline ();
-        if 0 = Sys.command ("[ \"$("
-                            ^ (if !std_input then
-                                 "\"$(printf \"%b\" \""
-                                 ^ in_from_stdin
-                                 ^ ")\" | ./fouine -cps -run -stdin)\""
-                               else
-                                 "./fouine -cps -run " ^ !nom_fichier
-                              ) ^ ")\" = \"$("
-                            ^ (if !std_input then
-                                 "\"$(printf \"%b\" \""
-                                 ^ in_from_stdin
-                                 ^ ")\" | ./fouine -stdin)\""
-                               else
-                                 "./fouine -run " ^ !nom_fichier
-                              ) ^  ")\" ]")
-        then
-          print_string "OK"
-        else print_string "NO";
-        print_newline ()
-      end
-    else
-      let lexbuf_file = Lexing.from_channel
-                          (if !std_input then stdin
-                           else open_in !nom_fichier)
-      in
-      let parse () = Parser.main Lexer.token lexbuf_file in
+  if !autotest && !cps then
+    begin
+      let in_from_stdin = if !std_input then read_stdin ()
+        else "" in
+      if 0 = Sys.command
+           ("[ \"$(printf \"%b\n%b\n%b\" "
+            ^ "\"let prInt i = print_int i; print_newline (); i\n;;\n\" "
+            ^ "\"exception E of int\n;;\n\" "
+            ^  (if !std_input then "\"" ^ in_from_stdin ^"\""
+                else
+                  "\"$(cat " ^ !nom_fichier ^ ")\""
+               ) ^ " | ocaml -stdin)\" = \"$("
+            ^  (if !std_input then "printf \"%b\n\" \""
+                                   ^ in_from_stdin
+                                   ^ "\" | ./fouine -stdin"
+                else
+                  "./fouine " ^ !nom_fichier
+               ) ^ ")\" ]")
+      then
+        print_string "OK"
+      else print_string "NO";
+      print_newline ();
+      if 0 = Sys.command
+           ("[ \"$(printf \"%b\n%b\n%b\n%b\" "
+            ^ "\"let prInt i = print_int i; print_newline (); i\n;;\n\" "
+            ^  (if !std_input then
+                  "\"$(printf \"%b\" \""
+                  ^ in_from_stdin
+                  ^ "\" | ./fouine -cps -optim -outcode -stdin)\""
+                else
+                  "\"$(./fouine -cps -optim -outcode " ^ !nom_fichier ^ ")\""
+               ) ^ " | ocaml -stdin)\" = \"$("
+            ^  (if !std_input then "printf \"%b\n\" \""
+                                   ^ in_from_stdin
+                                   ^ "\" | ./fouine -stdin"
+                else
+                  "./fouine " ^ !nom_fichier
+               ) ^ ")\" ]")
+      then
+        print_string "OK"
+      else print_string "NO";
+      print_newline ();
+      if 0 = Sys.command ("[ \"$("
+                          ^ (if !std_input then
+                               "\"$(printf \"%b\" \""
+                               ^ in_from_stdin
+                               ^ ")\" | ./fouine -cps -run -stdin)\""
+                             else
+                               "./fouine -cps -run " ^ !nom_fichier
+                            ) ^ ")\" = \"$("
+                          ^ (if !std_input then
+                               "\"$(printf \"%b\" \""
+                               ^ in_from_stdin
+                               ^ ")\" | ./fouine -stdin)\""
+                             else
+                               "./fouine -run " ^ !nom_fichier
+                            ) ^  ")\" ]")
+      then
+        print_string "OK"
+      else print_string "NO";
+      print_newline ()
+    end
+  else
+    let lexbuf_file = Lexing.from_channel
+        (if !std_input then stdin
+         else open_in !nom_fichier)
+    in
+
+    let parse () = Parser.main Lexer.token lexbuf_file in
+    try
       let result = parse () in
-      (* let t = Inference.inference result in *)
+      (* TYPAGE *)
+      if not !notypes then begin
+        try
+          (* let listedescouples_variables&type = lafonctionquitype result in
+           * if !showtypes then
+           *   affiche_type_list listedescouples_variables&type *)
+          ()
+        with _ -> print_string "Erreur de typage\n"
+      end ;
+
       calc (if !reduc then Reduction.reduction result else result)
-  with _ -> print_string "erreur de saisie\n"
+
+    with _ -> print_string "erreur de saisie\n"
 
 
 let _ = exec ()
