@@ -1,4 +1,5 @@
 open Expr
+open Types
 
 (* fonctions d'affichage *)
 let const_to_string = function
@@ -157,3 +158,21 @@ let rec affiche_expr_tree e =
       print_string ")"
     end
 
+let is_atom_type = function
+  | TInt
+  | TBool
+  | TUnit
+  | TVar _
+    -> true
+  | _ -> false
+
+let rec type_to_string = function
+  | TInt -> "int"
+  | TBool -> "bool"
+  | TFun (t1,t2) -> subtype_to_string t1 ^ " -> " ^ subtype_to_string t2
+  | TVar x -> "t" ^ string_of_int x
+  | TUnit -> "unit"
+  | TList t ->
+    subtype_to_string t ^ " list"
+and subtype_to_string t =
+ if is_atom_type t then type_to_string t else "(" ^ type_to_string t ^ ")"
