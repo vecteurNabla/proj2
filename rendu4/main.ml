@@ -195,9 +195,10 @@ let exec () =
       in
       let parse () = Parser.main Lexer.token lexbuf_file in
       let result = parse () in
-      (* let t = Inference.inference result in *)
+      (* let t = Inference.inference Expr.Unit in *)
       calc (if !reduc then Reduction.reduction result else result)
-  with _ -> print_string "erreur de saisie\n"
+  with e -> (* print_string "erreur de saisie\n" *)
+        raise e
 
 
 let _ = exec ()
