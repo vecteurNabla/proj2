@@ -201,9 +201,11 @@ let exec () =
     let parse () = Parser.main Lexer.token lexbuf_file in
     try
       let result = parse () in
+
       (* TYPAGE *)
       if not !notypes then begin
         try
+          let t = Inference.inference (Expr.Pattern (Expr.PConst (Expr.Unit))) in
           (* let listedescouples_variables&type = lafonctionquitype result in
            * if !showtypes then
            *   affiche_type_list listedescouples_variables&type *)
@@ -213,7 +215,7 @@ let exec () =
 
       calc (if !reduc then Reduction.reduction result else result)
 
-    with _ -> print_string "erreur de saisie\n"
-
+  with e -> (* print_string "erreur de saisie\n" *)
+        raise e
 
 let _ = exec ()
