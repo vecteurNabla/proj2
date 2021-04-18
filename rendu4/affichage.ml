@@ -167,12 +167,27 @@ let is_atom_type = function
   | _ -> false
 
 let rec type_to_string = function
+  | TUnit -> "unit"
   | TInt -> "int"
   | TBool -> "bool"
-  | TFun (t1,t2) -> subtype_to_string t1 ^ " -> " ^ subtype_to_string t2
-  | TVar x -> "t" ^ string_of_int x
-  | TUnit -> "unit"
+  | TExn -> "exn"
   | TList t ->
     subtype_to_string t ^ " list"
+  | TRef t ->
+    subtype_to_string t ^ " ref"
+  | TFun (t1, (TFun(_,_) as t2)) ->
+    subtype_to_string t1 ^ " -> " ^ type_to_string t2
+  | TFun (t1, t2) ->
+    subtype_to_string t1 ^ " -> " ^ subtype_to_string t2
+  | TCpl (t1,t2) ->
+    subtype_to_string t1 ^ " * " ^ subtype_to_string t2
+  | TVar x -> "t" ^ string_of_int x
+
 and subtype_to_string t =
  if is_atom_type t then type_to_string t else "(" ^ type_to_string t ^ ")"
+
+let rec affiche_type_list = function
+| [] -> ()
+| (x,t)::next ->
+  print_string ( string_of_int x ^ " : " ^  type_to_string t ^ "\n" ) ;
+  affiche_type_list next
