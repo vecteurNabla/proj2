@@ -113,13 +113,13 @@ expression:			    /* règles de grammaire pour les expressions */
   | expression COMA expression                              { Cpl($1, $3) }
   | expression AFF expression                               { Aff($1, $3) }
   | RAISE LPAREN E e = expression RPAREN %prec APP                          { Raise e }
-  | TRY; e = expression; WITH E; p = pattern; MAPS; e1 = expression
+  | TRY; e = expression; WITH; PIPE?; E; p = pattern; MAPS; e1 = expression
 	{ Try(e, p, e1) }
   | MATCH expression WITH pattern_matching                  { Match($2, $4) }
   | FUNCTION pattern_matching
-	{ Fun(Ident (!Transformation.prefix ^ "x"), Match(Expr.(~~) (!Transformation.prefix ^ "x"), $2)) }
-  | l = reverse_separated_nonempty_llist(CONS, atom_expr); CONS; a = atom_expr /* il faudrait remplacer atom_expr par simpl_expr */
-	{ List.fold_left (fun x b -> Cons(b, x)) a l }
+	{ Fun(Ident (!Transformation.prefix ^ "x"),
+		  Match(Expr.(~~) (!Transformation.prefix ^ "x"), $2)) }
+  | expression CONS expression {Cons($1, $3)}
 ;
 
 let_decs:
@@ -134,7 +134,7 @@ simpl_expr:
 
 atom_expr:
   | constant                                                { ~& $1 }
-  | LPAREN expression RPAREN                                { $2 }
+  | LPAREN seq_expr RPAREN                                  { $2 }
   | VAR                                                     { Pattern $1 }
   | UNDER                                                   { Pattern Under }
   | DER atom_expr                                           { Der $2 }
@@ -173,13 +173,9 @@ pars_list:
 ;
 
 list_sh:						/* [x_1; ... x_n] */
-  | l = reverse_separated_nonempty_llist(SEQ, atom_expr)
+  | l = reverse_separated_nonempty_llist(SEQ, expression)
 	{ List.fold_left (fun x b -> Cons(b, x)) (~& Nil) l }
 ;
-
-/* list_pt: */
-/*   | expression CONS atom_expr      { Cons ($1, $3) } */
-/*   | expression CONS list_pt        { Cons ($1, $3) } */
 
 let_binding:
   | pattern EQUAL seq_expr                  { ($1, $3) }
