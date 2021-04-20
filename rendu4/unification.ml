@@ -121,10 +121,10 @@ let rec build_megatype defined t1_ t2_ = function
  * des (variables de type, type) après unification.
  * en cas d'échec, les excpetions Not_unifyable ou Cyclic_type peuvent être levées
  *)
-let unification (pb:Inference.probleme) =
+let unification ct =
   (* let varc = ref 0 in *)
 
-  let defined, t1_, t2_ = build_megatype [] [] [] pb.ct in
+  let defined, t1_, t2_ = build_megatype [] [] [] ct in
   let t1 = ref (Repr (Op ("", t1_))) in
   let t2 = ref (Repr (Op ("", t2_))) in
 

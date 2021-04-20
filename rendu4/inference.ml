@@ -25,8 +25,17 @@ let inference e =
   let top_level = ref [] in
   (* max is the highest used number for a type var, in_top_level is
    * true if we are in a top level declaration *)
+  let inf_const c t max = match c with
+      | Int i -> prob.ct <- (TInt, t)::(prob.ct); max
+      | Unit -> prob.ct <- (TUnit, t)::(prob.ct); max
+      | Bool b -> prob.ct <- (TBool, t)::(prob.ct); max
+      | Nil ->
+        prob.ct <- (TList (TVar (max+1)),t)
+                   ::(prob.ct); max+1
+  in
+
   let rec inf_aux e t max in_top_level vars = match e with
-    | App(e1, e2) -> 
+    | App(e1, e2) ->
       let max' = inf_aux e1 (TFun(TVar (max + 1), t)) (max + 1) in_top_level vars in
       (inf_aux e2 (TVar (max'+1)) (max'+1) in_top_level vars)+1
     | Fun(p, e) -> (
@@ -35,13 +44,7 @@ let inference e =
       inf_aux e (TVar (max')) (max') in_top_level vars')
     | Pattern p -> (match p with
                    | Under -> max
-                   | PConst c -> (match c with
-                                 | Int i -> prob.ct <- (TInt, t)::(prob.ct); max
-                                 | Unit -> prob.ct <- (TUnit, t)::(prob.ct); max
-                                 | Bool b -> prob.ct <- (TBool, t)::(prob.ct); max
-                                 | Nil ->
-                                    prob.ct <- (TList (TVar (max+1)),t)
-                                           ::(prob.ct); max+1)
+                   | PConst c -> inf_const c t max
                    | Ident s -> (
                      let ts = is_typed s vars in
                      prob.ct <- (ts, t)::(prob.ct);
@@ -59,6 +62,11 @@ let inference e =
       let max' = inf_aux e (TVar (max+1)) (max+1) false vars in
       let vars', max'' = add_pat_to_tenv p max' vars in
       inf_aux e' t max'' in_top_level vars')
+    | Val v -> (match v with
+        | Const c -> inf_const c t max
+        | _ -> failwith "this value cannot be typed yet\n"
+      )
   in
   inf_aux e (TVar 0) 0 true [];
-  prob, !top_level
+  (* prob, !top_level *)
+  Unification.unification prob.ct
