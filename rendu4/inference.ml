@@ -33,7 +33,6 @@ let inference e =
         prob.ct <- (TList (TVar (max+1)),t)
                    ::(prob.ct); max+1
   in
-
   let rec inf_aux e t max in_top_level vars = match e with
     | App(e1, e2) ->
       let max' = inf_aux e1 (TFun(TVar (max + 1), t)) (max + 1) in_top_level vars in
@@ -51,14 +50,14 @@ let inference e =
                      if in_top_level then
                        top_level := (s, ts)::(!top_level)); max
                    | PCpl (p1, p2) -> (
-                     prob.ct <- (t, TCpl(TVar (max+1), TVar (max+2)))::prob.ct;
                      let max' = inf_aux (Pattern p1) (TVar (max+1)) (max+2) in_top_level vars in
-                     inf_aux (Pattern p2) (TVar (max+2)) (max') in_top_level vars)
+                     prob.ct <- (t, TCpl(TVar (max+1), TVar (max'+1)))::prob.ct;
+                     inf_aux (Pattern p2) (TVar (max'+1)) (max'+1) in_top_level vars)
                    | PList (p1, p2) -> (
                      prob.ct <- (t, TList(TVar (max+1)))::prob.ct;
                      let max' = inf_aux (Pattern p1) (TVar (max+1)) (max+1) in_top_level vars in
                      inf_aux (Pattern p2) (TList (TVar (max+1))) (max') in_top_level vars))
-    | Let (p, e, e') -> (
+    | Let (p, e, e') | Rec (p, e, e') -> (
       let max' = inf_aux e (TVar (max+1)) (max+1) false vars in
       let vars', max'' = add_pat_to_tenv p max' vars in
       inf_aux e' t max'' in_top_level vars')
@@ -66,7 +65,26 @@ let inference e =
         | Const c -> inf_const c t max
         | _ -> failwith "this value cannot be typed yet\n"
       )
+    | Cpl (e1, e2) -> (
+      let max' = inf_aux e1 (TVar (max+1)) (max+1) false vars in
+      prob.ct <- (t, TCpl(TVar (max+1), TVar(max'+1)))::prob.ct;
+      inf_aux e2 (TVar (max'+1)) (max'+1) false vars
+    )
+    | Aff (e1, e2) -> (
+      prob.ct <- (t, TUnit)::prob.ct;
+      let max' = (inf_aux e2 (TVar (max+1)) (max+1) false vars) in
+      inf_aux e1 (TRef (TVar (max+1))) (max') false vars
+    )
+    | Der e -> (
+      prob.ct <- (t, TVar (max+1))::prob.ct;
+      inf_aux e (TVar (max+1)) (max+1) false vars
+    )
+    | If (b, et, ef) -> (
+      prob.ct <- (t, TBool)::prob.ct;
+      let max' = inf_aux b (TBool) max false vars in
+      let max'' = inf_aux et (TVar (max'+1)) (max'+1) false vars in
+      inf_aux ef (TVar (max'+1)) (max''+1) false vars
+    )
   in
   inf_aux e (TVar 0) 0 true [];
   (* prob, !top_level *)
-  Unification.unification prob.ct

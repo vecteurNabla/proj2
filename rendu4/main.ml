@@ -205,14 +205,13 @@ let exec () =
       (* TYPAGE *)
       if not !notypes then begin
         (* try *)
-          let t = Inference.inference (* (Expr.Pattern (Expr.PConst (Expr.Unit))) *) result in
+          let t = Inference.inference (Expr.Pattern (Expr.PConst (Expr.Unit))) in
+          ()
           (* let listedescouples_variables&type = lafonctionquitype result in
            * if !showtypes then
            *   affiche_type_list listedescouples_variables&type *)
-          affiche_type_list t
         (* with _ -> print_string "Erreur de typage\n" *)
-      end ;
-
+      end;
       calc (if !reduc then Reduction.reduction result else result)
 
   with e -> (* print_string "erreur de saisie\n" *)
