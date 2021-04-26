@@ -200,21 +200,31 @@ let exec () =
 
     let parse () = Parser.main Lexer.token lexbuf_file in
     try
-      let result = parse () in
+      let result =
+        let parsed = parse () in
+        if !reduc then Reduction.reduction parsed else parsed
+      in
 
       (* TYPAGE *)
       if not !notypes then begin
-        (* try *)
-          let t = Inference.inference (Expr.Pattern (Expr.PConst (Expr.Unit))) in
-          ()
-          (* let listedescouples_variables&type = lafonctionquitype result in
-           * if !showtypes then
-           *   affiche_type_list listedescouples_variables&type *)
-        (* with _ -> print_string "Erreur de typage\n" *)
+        try
+          let pb, top_level = Inference.inference' result (* (Expr.Pattern (Expr.PConst (Expr.Unit))) *) in
+          affiche_ct pb ;
+          let types = Unification.unification pb in
+          if !showtypes then (
+            affiche_toplevel_types types top_level ;
+            print_string ( "- : " ^ type_to_string (find_type 0 types) ) ;
+            print_newline () ;
+            affiche_type_list types ;
+          )
+        with e -> print_string "Erreur de typage\n" ; raise e
       end;
-      calc (if !reduc then Reduction.reduction result else result)
 
-  with e -> (* print_string "erreur de saisie\n" *)
-        raise e
+      calc result
+
+  with
+  | Unification.Not_unifyable -> print_string "Impossible d'unifier\n" ;
+  | e -> (* print_string "erreur de saisie\n" *)
+    raise e
 
 let _ = exec ()
