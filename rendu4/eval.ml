@@ -111,7 +111,7 @@ let rec eval env m e k break : value = match e with
       )
       break
 
-  | Seq(e1,e2) -> eval env m e1 (fun v -> eval env m e2 k break) break
+  (* | Seq(e1,e2) -> eval env m e1 (fun v -> eval env m e2 k break) break *)
   | Aff(e1, e2) ->
      eval env m e2 (fun v2 ->
          eval env m e1 (fun v1 ->

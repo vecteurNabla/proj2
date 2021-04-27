@@ -51,7 +51,7 @@ and affiche_expr_code e =
 
   | Cpl(e1,e2) -> aff_aux "(" e1 "," e2 ")"
 
-  | Seq(e1,e2) -> aff_aux "" e1 " ; " e2 ""
+  (* | Seq(e1,e2) -> aff_aux "" e1 " ; " e2 "" *)
   | Aff(e1,e2) -> aff_aux "" e1 " := " e2 ""
   | Der(e) -> begin
       print_string "!(" ;
@@ -114,7 +114,7 @@ let rec affiche_expr_tree e =
 
   | Cpl(e1,e2) -> aff_aux "Cpl(" e1 e2
 
-  | Seq(e1,e2) -> aff_aux "Seq(" e1 e2
+  (* | Seq(e1,e2) -> aff_aux "Seq(" e1 e2 *)
   | Aff(e1,e2) -> aff_aux "Aff(" e1 e2
   | Der(e) -> begin
       print_string "Der(" ;

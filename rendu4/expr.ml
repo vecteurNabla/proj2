@@ -36,7 +36,6 @@ and expr =
 
   | Cpl of expr*expr
 
-  | Seq of expr * expr            (* e1; e2 *)
   | Aff of expr * expr            (* e1 := e2 *)
   | Der of expr                   (* !e *)
 

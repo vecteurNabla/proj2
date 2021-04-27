@@ -208,15 +208,22 @@ let exec () =
       (* TYPAGE *)
       if not !notypes then begin
         try
-          let pb, top_level = Inference.inference' result (* (Expr.Pattern (Expr.PConst (Expr.Unit))) *) in
-          affiche_ct pb ;
-          let types = Unification.unification pb in
-          if !showtypes then (
-            affiche_toplevel_types types top_level ;
-            print_string ( "- : " ^ type_to_string (find_type 0 types) ) ;
-            print_newline () ;
-            affiche_type_list types ;
-          )
+          let pb, top_level = try Inference.inference' result
+                              with e -> print_string "erreur dans l'inf\n";
+                                       raise e
+          in
+          affiche_ct pb;
+          let types =
+            try 
+              Unification.unification pb
+            with e -> print_string "erreur dans l'unif\n"; raise e
+          in
+            if !showtypes then (
+              affiche_toplevel_types types top_level ;
+              print_string ( "- : " ^ type_to_string (find_type 0 types) ) ;
+              print_newline () ;
+              affiche_type_list types ;
+            )
         with e -> print_string "Erreur de typage\n" ; raise e
       end;
 
