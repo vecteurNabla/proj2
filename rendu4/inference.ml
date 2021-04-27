@@ -92,7 +92,7 @@ let is_typed = List.assoc
 
 (******************)
 
-let inference' e =
+let inference e =
   let prob = ref [] in
   let top_level = ref [] in
   (* max is the highest used number for a type var, in_top_level is
@@ -108,8 +108,8 @@ let inference' e =
     | Bool b -> prob := (TBool, t):: !prob
     | Nil -> prob := (TList (TVar (max ())),t):: !prob
   in
-  
-  let rec add_pat_to_tenv' p env = match p with
+
+  let rec add_pat_to_tenv p env = match p with
     | Under -> env, TVar (max ())
     | PConst c -> env, (match c with
                        | Int i -> TInt
@@ -120,12 +120,12 @@ let inference' e =
        let m = max () in
        (s, TVar m)::env, (TVar m)
     | PCpl(p1, p2) ->
-       let env', t1 = add_pat_to_tenv' p1 env in
-       let env'', t2 = add_pat_to_tenv' p2 env' in
+       let env', t1 = add_pat_to_tenv p1 env in
+       let env'', t2 = add_pat_to_tenv p2 env' in
        env'', TCpl (t1, t2)
     | PList (p1, p2) ->
-       let env', t1 = add_pat_to_tenv' p1 env in
-       let env'', t2 = add_pat_to_tenv' p2 env' in
+       let env', t1 = add_pat_to_tenv p1 env in
+       let env'', t2 = add_pat_to_tenv p2 env' in
        prob := (t2, TList t1)::!prob;
        env'', t2
   in
@@ -139,7 +139,7 @@ let inference' e =
       let m = max () in
       let m' = max () in
       prob := (TFun(TVar m, TVar m'), t):: !prob;
-      let vars', tp = add_pat_to_tenv' p vars in
+      let vars', tp = add_pat_to_tenv p vars in
       prob := (tp, TVar m)::!prob;
       inf_aux e (TVar m') in_top_level vars'
 
@@ -171,7 +171,7 @@ let inference' e =
     | Let (p, e, e') | Rec (p, e, e') ->   (* /!\ il faut typer les patterns ! *)
        let m = max () in
        inf_aux e (TVar m) false vars ;
-       let vars', tp = add_pat_to_tenv' p vars in
+       let vars', tp = add_pat_to_tenv p vars in
        prob := (tp, TVar m)::!prob;
        inf_aux e' t in_top_level vars'
 
@@ -211,7 +211,7 @@ let inference' e =
         * prob := (t, TVar m_out)::!prob; *)
        inf_aux e (TVar m_in) false vars;
        List.iter (fun (p, eo) ->
-           let vars', tp = add_pat_to_tenv' p vars in
+           let vars', tp = add_pat_to_tenv p vars in
            prob := (tp, TVar m_in)::!prob;
            (* inf_aux eo (TVar m_out) false vars' *)
            inf_aux eo t false vars'
@@ -224,11 +224,11 @@ let inference' e =
 
     | Try (e, p, e') ->
        inf_aux e (TVar (max ())) in_top_level vars;
-       let vars', tp = add_pat_to_tenv' p vars in
+       let vars', tp = add_pat_to_tenv p vars in
        inf_aux e' t false vars'
 
     | Raise e ->
-      () 
+      ()
   in
   inf_aux e (TVar 0) true StdLib.types_stdlib;
   !prob, !top_level

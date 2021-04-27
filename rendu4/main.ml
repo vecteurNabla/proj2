@@ -23,6 +23,27 @@ let notypes = ref false
 let showtypes = ref false
 let monotypes = ref false
 
+let optlist = [
+  ("-showsrc", Arg.Set showsrc, "Affiche le programme en entrée");
+  ("-debug", Arg.Set debug, "Active le mode de debuggage : affiche le programme en entrée et les sorties du programme " );
+  ("-tree", Arg.Set tree, "Affiche l'arbre du programme" );
+  ("-outval", Arg.Set outval, "Affiche la valeur finale du programme" );
+  ("-stdin", Arg.Set std_input, "Exécute le code depuis l'entrée standard (et pas depuis un fichier)" );
+  ("-cps", Arg.Set cps, "Applique la transformation pour éliminer les exceptions");
+  ("-outcode", Arg.Set outcode, "Cette option, combinée avec l’option -cps, aura pour effet d’afficher à l’écran le programme résultant de la transformation, sans l’exécuter");
+  ("-outcode-tree", Arg.Set outcode_tree, "Cette option, combinée avec l’option -cps, aura pour effet d’afficher à l’écran le programme résultant de la transformation sous forme d'arbre, sans l’exécuter");
+  ("-run", Arg.Set run, "Cette option, combinée avec l’option -cps, aura pour effet d’exécuter avec fouine le programme résultant de la traduction");
+  ("-autotest", Arg.Set autotest, "Cette option, combinée avec l’option -cps, aura pour effet de comparer différentes exécutions du programme fourni en entrée");
+  ("-optim", Arg.Set optim, "Cette option améliore la traduction CPS en appliquant des bêta-réductions");
+  ("-reduc", Arg.Set reduc, "Prétraite le code en entrée en appliquant des bêta-réductions");
+  ("-prefix", Arg.String (fun s -> Transformation.prefix := s), "Redéfinit le préfixe des variables introduites par l'interprète, par défaut \"x4V13r_L3r0y\"");
+  ("-notypes", Arg.Set notypes, "Interprète les programme sans le typer au préalable");
+  ("-showtypes", Arg.Set showtypes, "Affiche le type inféré pour toutes les déclarations en surface, l’expression principale étant désignée par \"-\"");
+  ("-monotypes", Arg.Set monotypes, "Typage en version monomorphe (par défaut, version polymorphe")
+]
+
+
+
 let compile env e =
   let m = Memory.empty_mem () in
   let k_init v = v in
@@ -98,32 +119,12 @@ let calc result =
   | StdLib.PrInt_not_int -> print_string "erreur: argument de la fonction prInt n'est pas entier comme attendu\n"
   | Match_Failure s -> print_string ( "erreur: matching impossible" ^ s ^ "\n")
 
-
 let exec () =
 
   let nom_fichier = ref "" in
 
   (* let lexbuf = Lexing.from_channel stdin in
    * let parse () = Parser.main Lexer.token lexbuf in *)
-
-  let optlist = [
-    ("-showsrc", Arg.Set showsrc, "Affiche le programme en entrée");
-    ("-debug", Arg.Set debug, "Active le mode de debuggage : affiche le programme en entrée et les sorties du programme " );
-    ("-tree", Arg.Set tree, "Affiche l'arbre du programme" );
-    ("-outval", Arg.Set outval, "Affiche la valeur finale du programme" );
-    ("-stdin", Arg.Set std_input, "Exécute le code depuis l'entrée standard (et pas depuis un fichier)" );
-    ("-cps", Arg.Set cps, "Applique la transformation pour éliminer les exceptions");
-    ("-outcode", Arg.Set outcode, "Cette option, combinée avec l’option -cps, aura pour effet d’afficher à l’écran le programme résultant de la transformation, sans l’exécuter");
-    ("-outcode-tree", Arg.Set outcode_tree, "Cette option, combinée avec l’option -cps, aura pour effet d’afficher à l’écran le programme résultant de la transformation sous forme d'arbre, sans l’exécuter");
-    ("-run", Arg.Set run, "Cette option, combinée avec l’option -cps, aura pour effet d’exécuter avec fouine le programme résultant de la traduction");
-    ("-autotest", Arg.Set autotest, "Cette option, combinée avec l’option -cps, aura pour effet de comparer différentes exécutions du programme fourni en entrée");
-    ("-optim", Arg.Set optim, "Cette option améliore la traduction CPS en appliquant des bêta-réductions");
-    ("-reduc", Arg.Set reduc, "Prétraite le code en entrée en appliquant des bêta-réductions");
-    ("-prefix", Arg.String (fun s -> Transformation.prefix := s), "Redéfinit le préfixe des variables introduites par l'interprète, par défaut \"x4V13r_L3r0y\"");
-    ("-notypes", Arg.Set notypes, "Interprète les programme sans le typer au préalable");
-    ("-showtypes", Arg.Set showtypes, "Affiche le type inféré pour toutes les déclarations en surface, l’expression principale étant désignée par \"-\"");
-    ("-monotypes", Arg.Set monotypes, "Typage en version monomorphe (par défaut, version polymorphe")
-  ] in
 
   Arg.parse
     optlist
@@ -210,30 +211,34 @@ let exec () =
       (* TYPAGE *)
       if not !notypes then begin
         try
-          let pb, top_level = try Inference.inference' result
-                              with e -> print_string "erreur dans l'inf\n";
-                                       raise e
+          let pb, top_level =
+            try
+              (if !monotypes then Inference.inference  else Polymorphisme.inference )result
+            with e -> print_string "erreur dans l'inf\n";
+              raise e
           in
           affiche_ct pb;
           let types =
-            try 
+            try
               Unification.unification pb
             with e -> print_string "erreur dans l'unif\n"; raise e
           in
-            if !showtypes then (
-              affiche_toplevel_types types top_level ;
-              print_string ( "- : " ^ type_to_string (find_type 0 types) ) ;
-              print_newline () ;
-              affiche_type_list types ;
-            )
+
+          if !showtypes then (
+            affiche_toplevel_types types top_level ;
+            print_string ( "- : " ^ type_to_string (Types.find_type 0 types) ) ;
+            print_newline () ;
+            affiche_type_list types ;
+          )
+
         with e -> print_string "Erreur de typage\n" ; raise e
-      end;
+      end ;
 
       calc result
 
-  with
-  | Unification.Not_unifyable -> print_string "Impossible d'unifier\n" ;
-  | e -> (* print_string "erreur de saisie\n" *)
-    raise e
+    with
+    | Unification.Not_unifyable -> print_string "Impossible d'unifier\n" ;
+    | e -> (* print_string "erreur de saisie\n" *)
+      raise e
 
 let _ = exec ()
