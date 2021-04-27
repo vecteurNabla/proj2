@@ -91,13 +91,6 @@ let inference e =
 
 
 (******************)
-let rec add_pat_to_tenv' p max env = match p with
-  | Under -> env
-  | PConst c -> env
-  | Ident s -> (s, TVar (max ()))::env
-  | PCpl(p1, p2) ->
-    let env' = add_pat_to_tenv' p1 max env in
-    add_pat_to_tenv' p2 max env'
 
 let inference' e =
   let prob = ref [] in
@@ -115,6 +108,22 @@ let inference' e =
     | Bool b -> prob := (TBool, t):: !prob
     | Nil -> prob := (TList (TVar (max ())),t):: !prob
   in
+  
+  let rec add_pat_to_tenv' p env = match p with
+    | Under -> env, TVar (max ())
+    | PConst c -> env, (match c with
+                       | Int i -> TInt
+                       | Unit -> TUnit
+                       | Bool b -> TBool
+                       | Nil -> TVar (max ()))
+    | Ident s ->
+       let m = max () in
+       (s, TVar m)::env, (TVar m)
+    | PCpl(p1, p2) ->
+       let env', t1 = add_pat_to_tenv' p1 env in
+       let env'', t2 = add_pat_to_tenv' p2 env' in
+       env'', TCpl (t1, t2)
+  in
   let rec inf_aux e t in_top_level vars = match e with
     | App(e1, e2) ->
       let m = max () in
@@ -124,7 +133,8 @@ let inference' e =
     | Fun(p, e) ->    (* /!\ il faut typer les patterns ! *)
       let m = max () in
       prob := (TFun(TVar (max ()), TVar m), t):: !prob;
-      let vars' = add_pat_to_tenv' p max vars in
+      let vars', tp = add_pat_to_tenv' p vars in
+      prob := (tp, TVar m)::!prob;
       inf_aux e (TVar m) in_top_level vars'
 
     | Pattern p -> begin
@@ -153,9 +163,11 @@ let inference' e =
       end
 
     | Let (p, e, e') | Rec (p, e, e') ->   (* /!\ il faut typer les patterns ! *)
-      inf_aux e (TVar (max ())) false vars ;
-      let vars' = add_pat_to_tenv' p max vars in
-      inf_aux e' t in_top_level vars'
+       let m = max () in
+       inf_aux e (TVar m) false vars ;
+       let vars', tp = add_pat_to_tenv' p vars in
+       prob := (tp, TVar m)::!prob;
+       inf_aux e' t in_top_level vars'
 
     | Val v -> begin match v with
         | Const c -> inf_const c t
@@ -181,11 +193,12 @@ let inference' e =
       inf_aux e (TRef (TVar m)) false vars
 
     | If (b, et, ef) ->
-      let m = max () ;in
-      prob := (t, TVar m)::!prob ;
-      inf_aux b (TBool) false vars ;
-      inf_aux et (TVar m) false vars ;
+      let m = max (); in
+      prob := (t, TVar m)::!prob;
+      inf_aux b (TBool) false vars;
+      inf_aux et (TVar m) false vars;
       inf_aux ef (TVar m) false vars
+
   in
   inf_aux e (TVar 0) true [];
   !prob, !top_level
