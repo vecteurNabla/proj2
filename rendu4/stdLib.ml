@@ -1,6 +1,7 @@
 open Expr
 open Eval
 open Memory
+open Types
 
 exception PrInt_not_int
 
@@ -28,6 +29,16 @@ let simples =
 
   ("prInt", StdLib _prInt)::
   ("ref", StdLib _ref)::
+  []
+
+let types_simples =
+  (* ("fst", StdLib _fst)::
+   * ("snd", StdLib _snd):: *)
+
+  ("not", TFun(TBool, TBool))::
+
+  ("prInt", TFun(TInt, TInt) )::
+  (* ("ref", StdLib _ref):: *)
   []
 
 
@@ -80,5 +91,25 @@ let doubles =
   ("( <> )", StdLib _neq)::
   []
 
+let types_doubles =
+  ("( + )", TFun(TInt, TFun(TInt, TInt)) )::
+  ("( * )", TFun(TInt, TFun(TInt, TInt)) )::
+  ("( - )", TFun(TInt, TFun(TInt, TInt)) )::
+  ("( / )", TFun(TInt, TFun(TInt, TInt)) )::
+
+  ("( && )", TFun(TBool, TFun(TBool, TBool)) )::
+  ("( || )", TFun(TBool, TFun(TBool, TBool)) )::
+
+  ("( <= )", TFun(TInt, TFun(TInt, TBool)) )::
+  ("( >= )", TFun(TInt, TFun(TInt, TBool)) )::
+  ("( < )", TFun(TInt, TFun(TInt, TBool)) )::
+  ("( > )", TFun(TInt, TFun(TInt, TBool)) )::
+  ("( = )", TFun(TInt, TFun(TInt, TBool)) )::
+  ("( <> )", TFun(TInt, TFun(TInt, TBool)) )::
+  []
+
 let stdlib =
  simples @ doubles
+
+let types_stdlib=
+  types_simples @ types_doubles
