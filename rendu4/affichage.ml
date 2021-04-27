@@ -198,15 +198,10 @@ let rec affiche_ct = function
     print_string ( type_to_string t1 ^ " = " ^  type_to_string t2 ^ "\n" ) ;
     affiche_ct next
 
-let rec find_type x = function
-  | [] -> TVar x
-  | (y,t)::_ when x=y -> t
-  | _::next -> find_type x next
-
 let rec affiche_toplevel_types types = function
   | [] -> ()
   | (s,TVar x)::next ->
-    print_string ( s ^ " : " ^  type_to_string (find_type x types) ^ "\n" ) ;
+    print_string ( s ^ " : " ^  type_to_string (Types.find_type x types) ^ "\n" ) ;
     affiche_toplevel_types types next
   | (s,t)::next ->
     print_string ( s ^ " : " ^  type_to_string t ^ "\n" ) ;

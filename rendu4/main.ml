@@ -21,6 +21,7 @@ let reduc = ref false
 
 let notypes = ref false
 let showtypes = ref false
+let monotypes = ref false
 
 let compile env e =
   let m = Memory.empty_mem () in
@@ -120,7 +121,8 @@ let exec () =
     ("-reduc", Arg.Set reduc, "Prétraite le code en entrée en appliquant des bêta-réductions");
     ("-prefix", Arg.String (fun s -> Transformation.prefix := s), "Redéfinit le préfixe des variables introduites par l'interprète, par défaut \"x4V13r_L3r0y\"");
     ("-notypes", Arg.Set notypes, "Interprète les programme sans le typer au préalable");
-    ("-showtypes", Arg.Set showtypes, "Affiche le type inféré pour toutes les déclarations en surface, l’expression principale étant désignée par \"-\"")
+    ("-showtypes", Arg.Set showtypes, "Affiche le type inféré pour toutes les déclarations en surface, l’expression principale étant désignée par \"-\"");
+    ("-monotypes", Arg.Set monotypes, "Typage en version monomorphe (par défaut, version polymorphe")
   ] in
 
   Arg.parse
