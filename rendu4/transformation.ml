@@ -140,13 +140,13 @@ let rec transform e =
           )
         end
 
-       | Seq(e1,e2) ->
-         two_expr e1 e2 begin
-           App(
-             ~~ ~+ "snd" ,
-                    kkE
-           )
-         end
+       (* | Seq(e1,e2) ->
+        *   two_expr e1 e2 begin
+        *     App(
+        *       ~~ ~+ "snd" ,
+        *              kkE
+        *     )
+        *   end *)
 
        | Aff(e1, e2) ->
          two_expr e2 e1 begin

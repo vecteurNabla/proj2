@@ -112,7 +112,7 @@ expression:			    /* règles de grammaire pour les expressions */
   | IF expression THEN expression ELSE expression %prec IF  { If($2, $4, $6) }
   | expression COMA expression                              { Cpl($1, $3) }
   | expression AFF expression                               { Aff($1, $3) }
-  | RAISE LPAREN E e = expression RPAREN %prec APP                          { Raise e }
+  | RAISE LPAREN E e = expression RPAREN %prec APP          { Raise e }
   | TRY; e = expression; WITH; PIPE?; E; p = pattern; MAPS; e1 = expression
 	{ Try(e, p, e1) }
   | MATCH expression WITH pattern_matching                  { Match($2, $4) }

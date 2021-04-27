@@ -63,7 +63,7 @@ let rec reduc chg rl e = match e with
 
   | Cpl(e1, e2) -> Cpl(reduc chg rl e1, reduc chg rl e2)
 
-  | Seq(e1, e2) -> Seq(reduc chg rl e1, reduc chg rl e2)
+  (* | Seq(e1, e2) -> Seq(reduc chg rl e1, reduc chg rl e2) *)
   | Aff(e1, e2) -> Aff(reduc chg rl e1, reduc chg rl e2)
   | Der(e) -> Der(reduc chg rl e)
 
