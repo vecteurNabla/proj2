@@ -132,10 +132,11 @@ let inference' e =
 
     | Fun(p, e) ->    (* /!\ il faut typer les patterns ! *)
       let m = max () in
-      prob := (TFun(TVar (max ()), TVar m), t):: !prob;
+      let m' = max () in
+      prob := (TFun(TVar m, TVar m'), t):: !prob;
       let vars', tp = add_pat_to_tenv' p vars in
       prob := (tp, TVar m)::!prob;
-      inf_aux e (TVar m) in_top_level vars'
+      inf_aux e (TVar m') in_top_level vars'
 
     | Pattern p -> begin
         match p with
@@ -145,7 +146,7 @@ let inference' e =
 
         | Ident s ->
           let ts = is_typed s vars in
-          prob := (ts, t):: !prob;
+          prob := (ts, t)::!prob;
           if in_top_level then
             top_level := (s, ts)::(!top_level)
 
@@ -200,5 +201,5 @@ let inference' e =
       inf_aux ef (TVar m) false vars
 
   in
-  inf_aux e (TVar 0) true [];
+  inf_aux e (TVar 0) true StdLib.types_stdlib;
   !prob, !top_level
