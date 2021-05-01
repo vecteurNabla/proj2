@@ -1,9 +1,9 @@
 open Expr
 open Types
 
-type probleme = {
-  mutable ct : (types * types) list;
-}
+(* type probleme = {
+ *   mutable ct : (types * types) list;
+ * } *)
 
 type type_env = (string * types) list
 

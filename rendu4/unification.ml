@@ -100,7 +100,7 @@ let cyclic t =
       | _ -> false
   in aux [] t
 
-exception Cyclic_type
+exception Cyclic_type of (types*types) list
 
 (* build a giant type with the empty operator to union all the type simultaniously :
  * if there is n constraints x_i = y_i, we build a unique constraint
@@ -134,7 +134,7 @@ let unification ct =
 
   debug "unification done\n" ;
 
-  if cyclic t1 || cyclic t2 then raise Cyclic_type ;
+  if cyclic t1 || cyclic t2 then raise (Cyclic_type ct) ;
 
   let rec get_type t = match !(repr t) with
     | Link _ -> failwith "it should not be a link\n"

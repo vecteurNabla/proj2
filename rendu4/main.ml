@@ -21,6 +21,7 @@ let reduc = ref false
 
 let notypes = ref false
 let showtypes = ref false
+let showmoretypes = ref false
 let monotypes = ref false
 
 let optlist = [
@@ -39,6 +40,7 @@ let optlist = [
   ("-prefix", Arg.String (fun s -> Transformation.prefix := s), "Redéfinit le préfixe des variables introduites par l'interprète, par défaut \"x4V13r_L3r0y\"");
   ("-notypes", Arg.Set notypes, "Interprète les programme sans le typer au préalable");
   ("-showtypes", Arg.Set showtypes, "Affiche le type inféré pour toutes les déclarations en surface, l’expression principale étant désignée par \"-\"");
+  ("-showmoretypes", Arg.Set showmoretypes, "Affiche les contraintes engendrées, puis comme showtype, puis la liste de tous les types inférés");
   ("-monotypes", Arg.Set monotypes, "Typage en version monomorphe (par défaut, version polymorphe")
 ]
 
@@ -217,19 +219,20 @@ let exec () =
             with e -> print_string "erreur dans l'inf\n";
               raise e
           in
-          affiche_ct pb;
+
+          if !showmoretypes then affiche_ct pb;
+
           let types =
             try
               Unification.unification pb
             with e -> print_string "erreur dans l'unif\n"; raise e
           in
 
-          if !showtypes then (
+          if !showtypes || !showmoretypes then (
             affiche_toplevel_types types top_level ;
-            print_string ( "- : " ^ type_to_string (Types.find_type 0 types) ) ;
-            print_newline () ;
-            affiche_type_list types ;
-          )
+            print_string ( "- : " ^ type_to_string (Types.find_type 0 types) ^ "\n") ;
+          ) ;
+          if !showmoretypes then affiche_type_list types ;
 
         with e -> print_string "Erreur de typage\n" ; raise e
       end ;
@@ -238,6 +241,7 @@ let exec () =
 
     with
     | Unification.Not_unifyable -> print_string "Impossible d'unifier\n" ;
+    | Unification.Cyclic_type pb -> print_string "Type cyclique\n" ; affiche_ct pb ;
     | e -> (* print_string "erreur de saisie\n" *)
       raise e
 

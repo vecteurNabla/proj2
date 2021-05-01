@@ -27,6 +27,9 @@ let rec free_tvar = function
 let make_schema t =
   { q = free_tvar t ;  t = t }
 
+let make_empty_schema t =
+  { q = [] ;  t = t }
+
 let specialize max st =
   let instance = List.map (fun x -> (x,max ())) st.q in
   let rec replace = function
@@ -46,14 +49,9 @@ let specialize max st =
   replace st.t
 
 
-let rec inference_polymorphe e prob top_level =
+let rec inference_polymorphe e prob top_level vars max x =
   (* max is the highest used number for a type var, in_top_level is
    * true if we are in a top level declaration *)
-  let max_ = ref 0 in
-  let max () =
-    incr max_ ; !max_
-  in
-
   let inf_const c t = match c with
     | Int i -> prob := (TInt, t):: !prob
     | Unit -> prob := (TUnit, t):: !prob
@@ -63,26 +61,47 @@ let rec inference_polymorphe e prob top_level =
 
   let rec add_pat_to_tenv p st env = match p, st.t with
     | Under, _ -> env
+
     | PConst c , _ ->
       inf_const c (specialize max st) ;
       env
+
     | Ident s , _ ->
       (s, st)::env
+
     | PCpl(p1, p2) , TCpl(t1, t2) ->
        let env' = add_pat_to_tenv p1 (make_schema t1) env in
        let env'' = add_pat_to_tenv p2 (make_schema t2) env' in
        env''
+
+    | PCpl(p1, p2) , TVar x ->
+      let t1 = TVar (max ()) in
+      let t2 = TVar (max ()) in
+      prob := (TVar x, TCpl( t1, t2 )) :: !prob ;
+      let env' = add_pat_to_tenv p1 (make_empty_schema t1) env in
+      let env'' = add_pat_to_tenv p2  (make_empty_schema t2) env' in
+      env''
+
+    | PList (p1, p2) , TList t ->
+       let env' = add_pat_to_tenv p1 (make_schema t) env in
+       let env'' = add_pat_to_tenv p2 (make_schema (TList t)) env' in
+       env''
+
+    | _ -> raise Unification.Not_unifyable
   in
+
 
   let rec inf_aux e t in_top_level vars = match e with
     | Let (p, e, e') | Rec (p, e, e') ->
 
-      let prob' = ref (!prob) in
-      inference_polymorphe e prob' (ref []) ;
-      let types = Unification.unification (!prob') in
-      let t_e = find_type 0 types in
-      let st_e = make_schema t_e in
+      let m = max () in
 
+      inference_polymorphe e prob (ref []) vars max m ;
+      let types = Unification.unification (!prob) in
+
+      let t_e = find_type m types in
+      let st_e = make_schema t_e in
+      
       let vars' = add_pat_to_tenv p st_e vars in
 
       inf_aux e' t in_top_level vars'
@@ -96,7 +115,7 @@ let rec inference_polymorphe e prob top_level =
     | Fun(p, e) ->
       let t_arg = TVar (max ()) in
       let t_res = TVar (max ()) in
-      let st_arg = { q = [] ; t = t_arg } in
+      let st_arg = make_empty_schema t_arg in
       prob := (TFun(t_arg, t_res), t):: !prob;
       let vars' = add_pat_to_tenv p st_arg vars in
       inf_aux e t_res in_top_level vars'
@@ -157,11 +176,43 @@ let rec inference_polymorphe e prob top_level =
       inf_aux et (TVar m) false vars;
       inf_aux ef (TVar m) false vars
 
+    (* | Match (e, l) ->
+     *    let m_in = max () in
+     *    (\* let m_out = max () in
+     *     * prob := (t, TVar m_out)::!prob; *\)
+     *    inf_aux e (TVar m_in) false vars;
+     *    List.iter (fun (p, eo) ->
+     *        let vars', tp = add_pat_to_tenv p vars in
+     *        prob := (tp, TVar m_in)::!prob;
+     *        (\* inf_aux eo (TVar m_out) false vars' *\)
+     *        inf_aux eo t false vars'
+     *      ) l; *)
+
+    | Cons(e1, e2) ->
+       let m = max () in
+       inf_aux e1 (TVar m) false vars;
+       inf_aux e2 (TList (TVar m)) false vars;
+       prob := (t, TList (TVar m))::!prob
+
+    (* | Try (e, p, e') ->
+     *    inf_aux e (TVar (max ())) in_top_level vars;
+     *    let vars', tp = add_pat_to_tenv p vars in
+     *    inf_aux e' t false vars' *)
+
+    | Raise e ->
+      ()
+
   in
-  inf_aux e (TVar 0) true (List.map (fun (s,t) -> s, {q = [] ; t=t}) StdLib.types_stdlib)
+  inf_aux e (TVar x) true vars
 
 let inference e =
   let prob = ref [] in
   let toplevel = ref [] in
-  inference_polymorphe e prob toplevel ;
+  let vars = (List.map (fun (s,t) -> s, make_empty_schema t) StdLib.types_stdlib) in
+
+  let max_ = ref 0 in
+  let max () =
+    incr max_ ; !max_
+  in
+  inference_polymorphe e prob toplevel vars max 0 ;
   !prob, !toplevel
