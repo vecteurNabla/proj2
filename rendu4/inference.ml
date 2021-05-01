@@ -169,10 +169,8 @@ let inference e =
       end
 
     | Let (p, e, e') | Rec (p, e, e') ->   (* /!\ il faut typer les patterns ! *)
-       let m = max () in
-       inf_aux e (TVar m) false vars ;
        let vars', tp = add_pat_to_tenv p vars in
-       prob := (tp, TVar m)::!prob;
+       inf_aux e tp false vars';
        inf_aux e' t in_top_level vars'
 
     | Val v -> begin match v with
