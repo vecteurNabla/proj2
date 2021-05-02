@@ -115,7 +115,7 @@ let inference e =
                        | Int i -> TInt
                        | Unit -> TUnit
                        | Bool b -> TBool
-                       | Nil -> TVar (max ()))
+                       | Nil -> TList (TVar (max ())))
     | Ident s ->
        let m = max () in
        (s, TVar m)::env, (TVar m)
@@ -129,6 +129,7 @@ let inference e =
        prob := (t2, TList t1)::!prob;
        env'', t2
   in
+
   let rec inf_aux e t in_top_level vars = match e with
     | App(e1, e2) ->
       let m = max () in
@@ -141,7 +142,7 @@ let inference e =
       prob := (TFun(TVar m, TVar m'), t):: !prob;
       let vars', tp = add_pat_to_tenv p vars in
       prob := (tp, TVar m)::!prob;
-      inf_aux e (TVar m') in_top_level vars'
+      inf_aux e (TVar m') false vars'
 
     | Pattern p -> begin
         match p with
@@ -152,31 +153,31 @@ let inference e =
         | Ident s ->
           let ts = is_typed s vars in
           prob := (ts, t)::!prob;
-          if in_top_level then
-            top_level := (s, ts)::(!top_level)
 
         | PCpl (p1, p2) ->
           let m = max () in
-          inf_aux (Pattern p1) (TVar m) in_top_level vars ;
+          inf_aux (Pattern p1) (TVar m) false vars ;
           prob := (t, TCpl(TVar m, TVar (max ())))::!prob ;
-          inf_aux (Pattern p2) (TVar (max ())) in_top_level vars
+          inf_aux (Pattern p2) (TVar (max ())) false vars
 
         | PList (p1, p2) ->
           let m = max () in
           prob := (t, TList(TVar m))::!prob ;
           inf_aux (Pattern p1) (TVar m) in_top_level vars ;
-          inf_aux (Pattern p2) (TList (TVar m)) in_top_level vars
+          inf_aux (Pattern p2) (TList (TVar m)) false vars
       end
 
     | Let (p, e, e') ->
        let m = max () in
+       if in_top_level then top_level := (p,m) :: !top_level ;
        inf_aux e (TVar m) false vars;
        let vars', tp = add_pat_to_tenv p vars in
        prob := (tp, TVar m)::!prob;
        inf_aux e' t in_top_level vars'
 
-    | Rec (p, e, e') -> 
+    | Rec (p, e, e') ->
        let vars', tp = add_pat_to_tenv p vars in
+       let TVar m = tp in if in_top_level then top_level := (p,m) :: !top_level ;
        inf_aux e tp false vars';
        inf_aux e' t in_top_level vars'
 

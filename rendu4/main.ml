@@ -237,6 +237,8 @@ let exec () =
         with e -> print_string "Erreur de typage\n" ; raise e
       end ;
 
+      flush stdout ;
+
       calc result
 
     with

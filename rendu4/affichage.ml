@@ -200,9 +200,6 @@ let rec affiche_ct = function
 
 let rec affiche_toplevel_types types = function
   | [] -> ()
-  | (s,TVar x)::next ->
-    print_string ( s ^ " : " ^  type_to_string (Types.find_type x types) ^ "\n" ) ;
-    affiche_toplevel_types types next
-  | (s,t)::next ->
-    print_string ( s ^ " : " ^  type_to_string t ^ "\n" ) ;
-    affiche_toplevel_types types next
+  | (p,x)::next ->
+    affiche_toplevel_types types next ;
+    print_string ( pattern_to_string p ^ " : " ^  type_to_string (Types.find_type x types) ^ "\n" )
