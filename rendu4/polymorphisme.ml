@@ -5,7 +5,7 @@ type schema_env = (string * schema) list
 
 let is_typed = List.assoc
 
-(* merges the two int list and remove the duplicates *)
+(* merges the two int list and removes the duplicates *)
 let merge a b =
   let cmp x y = if x=y then 0 else if x<y then -1 else 1 in
   let a' = List.sort cmp a in
@@ -111,7 +111,7 @@ let rec inference_polymorphe e prob top_level vars max x =
       let types = Unification.unification (!prob) in
 
       let t_e = find_type m types in
-      let st_e = make_schema t_e in
+      let st_e = ( match e with App _ -> make_empty_schema | _ -> make_schema ) t_e in
 
       let vars' = add_pat_to_tenv p st_e vars in
 
@@ -131,7 +131,7 @@ let rec inference_polymorphe e prob top_level vars max x =
       let types = Unification.unification (!prob) in
 
       let t_e = find_type m types in
-      let st_e = make_schema t_e in
+      let st_e = ( match e with App _ -> make_empty_schema | _ -> make_schema ) t_e in
 
       let vars' = (s, st_e)::vars in
 
@@ -234,7 +234,7 @@ let rec inference_polymorphe e prob top_level vars max x =
 let inference e =
   let prob = ref [] in
   let toplevel = ref [] in
-  let vars = (List.map (fun (s,t) -> s, make_empty_schema t) StdLib.types_stdlib) in
+  let vars = (List.map (fun (s,t) -> s, make_schema t) StdLib.types_stdlib) in
 
   let max_ = ref 0 in
   let max () =

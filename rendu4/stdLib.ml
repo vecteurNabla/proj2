@@ -5,6 +5,11 @@ open Types
 
 exception PrInt_not_int
 
+(* variables de types négatifs pour les fonctions de la stdlib :
+ * pas de collision avec les types du code *)
+let tvar_ = ref 0
+let tvar () = decr tvar_ ; TVar !tvar_
+
 (* fonctions std simples, ie sans application partielles *)
 let _prInt m = function
   | Const (Int i) -> (print_int i ; print_newline () ; ~& (Int i) )
@@ -32,19 +37,17 @@ let simples =
   []
 
 let types_simples =
-  (* ("fst", StdLib _fst)::
-   * ("snd", StdLib _snd):: *)
+  ("fst", let t,t' = tvar (), tvar () in TFun( TCpl( t, t' ), t ))::
+  ("snd", let t,t' = tvar (), tvar () in TFun( TCpl( t, t' ), t' ))::
 
   ("not", TFun(TBool, TBool))::
 
   ("prInt", TFun(TInt, TInt) )::
-  (* ("ref", StdLib _ref):: *)
+  ("ref", let t = tvar () in TFun( t, TRef t ))::
   []
-
 
 (* fonctions doubles, ie avec application partielle *)
 
-(* fonctions non traduites *)
 let arithop1 op i m = function
   | Const (Int j) -> ~& (Int (op i j))
   | _ -> raise (Not_expected "un entier")
@@ -104,8 +107,8 @@ let types_doubles =
   ("( >= )", TFun(TInt, TFun(TInt, TBool)) )::
   ("( < )", TFun(TInt, TFun(TInt, TBool)) )::
   ("( > )", TFun(TInt, TFun(TInt, TBool)) )::
-  ("( = )", TFun(TInt, TFun(TInt, TBool)) )::
-  ("( <> )", TFun(TInt, TFun(TInt, TBool)) )::
+  ("( = )", let t = tvar () in TFun(t, TFun(t, TBool)) )::
+  ("( <> )", let t = tvar () in TFun(t, TFun(t, TBool)) )::
   []
 
 let stdlib =
