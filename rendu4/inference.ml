@@ -169,7 +169,7 @@ let inference e =
 
     | Let (p, e, e') ->
        let m = max () in
-       if in_top_level then top_level := (p,m) :: !top_level ;
+       if in_top_level && p <> Under then top_level := (p,m) :: !top_level ;
        inf_aux e (TVar m) false vars;
        let vars', tp = add_pat_to_tenv p vars in
        prob := (tp, TVar m)::!prob;
@@ -177,7 +177,7 @@ let inference e =
 
     | Rec (p, e, e') ->
        let vars', tp = add_pat_to_tenv p vars in
-       let TVar m = tp in if in_top_level then top_level := (p,m) :: !top_level ;
+       let TVar m = tp in if in_top_level && p <> Under then top_level := (p,m) :: !top_level ;
        inf_aux e tp false vars';
        inf_aux e' t in_top_level vars'
 

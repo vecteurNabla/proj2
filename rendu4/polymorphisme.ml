@@ -105,7 +105,7 @@ let rec inference_polymorphe e prob top_level vars max x =
 
       let m = max () in
 
-      if in_top_level then top_level := (p,m) :: !top_level ;
+      if in_top_level && p <> Under then top_level := (p,m) :: !top_level ;
 
       inference_polymorphe e prob (ref []) vars max m ;
       let types = Unification.unification (!prob) in
@@ -121,7 +121,7 @@ let rec inference_polymorphe e prob top_level vars max x =
 
       let m = max () in
 
-      if in_top_level then top_level := (p,m) :: !top_level ;
+      if in_top_level && p <> Under then top_level := (p,m) :: !top_level ;
 
       let st_e0 = make_empty_schema (TVar m) in
 
@@ -221,13 +221,12 @@ let rec inference_polymorphe e prob top_level vars max x =
       inf_aux e2 (TList (TVar m)) false vars;
       prob := (t, TList (TVar m))::!prob
 
-    | Try (e, p, e') -> ()
-    (*    inf_aux e (TVar (max ())) in_top_level vars;
-     *    let vars', tp = add_pat_to_tenv p vars in
-     *    inf_aux e' t false vars' *)
+    | Try (e, p, e') ->
+      inf_aux e t in_top_level vars;
+      let vars' = add_pat_to_tenv p (make_empty_schema TInt) vars in
+      inf_aux e' t false vars'
 
-    | Raise e ->
-      ()
+    | Raise e -> inf_aux e TInt false vars
 
   in
   inf_aux e (TVar x) true vars
