@@ -215,6 +215,13 @@ let inference e =
   let max () =
     incr max_ ; !max_
   in
+
   inference_polymorphe e prob toplevel vars max 0 ;
+
   let types = Unification.unification !prob in
+
+  let t = find_type 0 types in
+  let st = ( match e with App _ -> make_empty_schema | _ -> make_schema ) t in
+
+  toplevel := !toplevel @ [(Ident "-", st)];
   types, !prob,  !toplevel

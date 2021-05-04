@@ -243,8 +243,7 @@ let exec () =
             if !showmoretypes then affiche_ct pb;
 
             if !showtypes || !showmoretypes then (
-              affiche_toplevel_types top_level ;
-              print_string ( "- : " ^ type_to_string (Types.find_type 0 types) ^ "\n") ;
+              affiche_toplevel_types top_level
             ) ;
             if !showmoretypes then affiche_type_list types ;
 
