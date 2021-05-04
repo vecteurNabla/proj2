@@ -1,4 +1,4 @@
-test_files=$(wildcard tests-rendu3/*/*.ml)
+test_files=$(wildcard tests-rendu4/*/*.ml)
 do_test=$(patsubst %.ml, %.do_test, $(test_files))
 
 OPT=-autotest -cps

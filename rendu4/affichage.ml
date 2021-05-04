@@ -182,9 +182,28 @@ let rec type_to_string = function
   | TCpl (t1,t2) ->
     subtype_to_string t1 ^ " * " ^ subtype_to_string t2
   | TVar x -> "t" ^ string_of_int x
-
 and subtype_to_string t =
  if is_atom_type t then type_to_string t else "(" ^ type_to_string t ^ ")"
+
+
+let rec schema_to_string st = match st.t with
+  | TVar x -> ( if List.mem x st.q then "" else "_" ) ^ "t" ^ string_of_int x
+  | TUnit -> "unit"
+  | TInt -> "int"
+  | TBool -> "bool"
+  | TExn -> "exn"
+  | TList t ->
+    subschema_to_string st.q t ^ " list"
+  | TRef t ->
+    subschema_to_string st.q t ^ " ref"
+  | TFun (t1, (TFun(_,_) as t2)) ->
+    subschema_to_string st.q t1 ^ " -> " ^ schema_to_string {q=st.q; t=t2}
+  | TFun (t1, t2) ->
+    subschema_to_string st.q t1 ^ " -> " ^ subschema_to_string st.q t2
+  | TCpl (t1,t2) ->
+    subschema_to_string st.q t1 ^ " * " ^ subschema_to_string st.q t2
+and subschema_to_string q t =
+ if is_atom_type t then schema_to_string {q=q; t=t} else "(" ^ schema_to_string {q=q; t=t} ^ ")"
 
 let rec affiche_type_list = function
   | [] -> ()
@@ -198,8 +217,8 @@ let rec affiche_ct = function
     print_string ( type_to_string t1 ^ " = " ^  type_to_string t2 ^ "\n" ) ;
     affiche_ct next
 
-let rec affiche_toplevel_types types = function
+let rec affiche_toplevel_types = function
   | [] -> ()
-  | (p,x)::next ->
-    affiche_toplevel_types types next ;
-    print_string ( pattern_to_string p ^ " : " ^  type_to_string (Types.find_type x types) ^ "\n" )
+  | (p,st)::next ->
+    print_string ( pattern_to_string p ^ " : " ^  schema_to_string st ^ "\n" ) ;
+    affiche_toplevel_types next ;

@@ -5,31 +5,6 @@ type schema_env = (string * schema) list
 
 let is_typed = List.assoc
 
-(* merges the two int list and removes the duplicates *)
-let merge a b =
-  let cmp x y = if x=y then 0 else if x<y then -1 else 1 in
-  let a' = List.sort cmp a in
-  let b' = List.sort cmp b in
-  let c = List.merge cmp a' b' in
-  List.sort_uniq cmp c
-
-let rec free_tvar = function
-  | TVar x -> [x]
-
-  | TList t | TRef t ->
-    free_tvar t
-
-  | TFun (t,t') | TCpl (t,t') ->
-    merge (free_tvar t) (free_tvar t')
-
-  | _ -> []
-
-let make_schema t =
-  { q = free_tvar t ;  t = t }
-
-let make_empty_schema t =
-  { q = [] ;  t = t }
-
 let specialize max st =
   let instance = List.map (fun x -> (x,max ())) st.q in
   let rec replace = function
@@ -105,8 +80,6 @@ let rec inference_polymorphe e prob top_level vars max x =
 
       let m = max () in
 
-      if in_top_level && p <> Under then top_level := (p,m) :: !top_level ;
-
       inference_polymorphe e prob (ref []) vars max m ;
       let types = Unification.unification (!prob) in
 
@@ -115,13 +88,13 @@ let rec inference_polymorphe e prob top_level vars max x =
 
       let vars' = add_pat_to_tenv p st_e vars in
 
+      if in_top_level && p <> Under then top_level := (p,st_e) :: !top_level ;
+
       inf_aux e' t in_top_level vars'
 
     | Rec (Ident s as p, e, e') ->
 
       let m = max () in
-
-      if in_top_level && p <> Under then top_level := (p,m) :: !top_level ;
 
       let st_e0 = make_empty_schema (TVar m) in
 
@@ -134,6 +107,8 @@ let rec inference_polymorphe e prob top_level vars max x =
       let st_e = ( match e with App _ -> make_empty_schema | _ -> make_schema ) t_e in
 
       let vars' = (s, st_e)::vars in
+
+      if in_top_level && p <> Under then top_level := (p,st_e) :: !top_level ;
 
       inf_aux e' t in_top_level vars'
 
@@ -241,4 +216,5 @@ let inference e =
     incr max_ ; !max_
   in
   inference_polymorphe e prob toplevel vars max 0 ;
-  !prob, !toplevel
+  let types = Unification.unification !prob in
+  types, !prob,  !toplevel

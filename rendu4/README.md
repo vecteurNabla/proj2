@@ -91,7 +91,7 @@ retire de la liste les pattern rencontrés dans des lieurs (`fun`,
 ## Tests
 
 Les tests sont répartis en 5 dossiers : debutant, intermediaire,
-avance (les mêmes qu'au rendu précédent), exceptions et transformation.
+avance, exceptions, transformation (les mêmes qu'au rendu précédent) et types.
 
 On notera que `make test` ne renvoie pas que des `OK`, cela est dû aux spécificités de FouineJN par rapport à OCaml. Voir les descriptions ci-dessous pour plus d'informations.
 
@@ -187,3 +187,15 @@ d'OCaml pour les exceptions non rattrapées.
 - `collision_k_ident.ml` on utilise un identifiant qui sera utilisé
   lors de la transformation pour représenter une continuation, cela
   engendre une erreur pour ocmal qui n'arrive pas à typer
+
+### types
+
+- `let.ml` déclaration simple
+
+- `let2.ml` déclaration simple de fonction polymorphe
+
+- `let3.ml` déclaration complexe de fonction polymorphe
+
+- `let4.ml` identité appliquée à l'indentité
+
+- `
