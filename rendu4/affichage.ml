@@ -187,7 +187,7 @@ and subtype_to_string t =
 
 
 let rec schema_to_string st = match st.t with
-  | TVar x -> (if List.mem x st.q then
+  | TVar x -> (if Hashtbl.mem st.q x then
                 "'" ^ Char.escaped (char_of_int (97+x))
               else "_weak" ^ string_of_int x
              )
@@ -220,8 +220,14 @@ let rec affiche_ct = function
     print_string ( type_to_string t1 ^ " = " ^  type_to_string t2 ^ "\n" ) ;
     affiche_ct next
 
-let rec affiche_toplevel_types = function
+let rec affiche_toplevel_types types = function
+  | [] -> ()
+  | (p,x)::next ->
+    affiche_toplevel_types types next ;
+    print_string ( pattern_to_string p ^ " : " ^  type_to_string (find_type 0 types) ^ "\n" )
+
+let rec affiche_toplevel_schema = function
   | [] -> ()
   | (p,st)::next ->
-    print_string ( pattern_to_string p ^ " : " ^  schema_to_string st ^ "\n" ) ;
-    affiche_toplevel_types next ;
+    affiche_toplevel_schema next ;
+    print_string ( pattern_to_string p ^ " : " ^  schema_to_string st ^ "\n" )

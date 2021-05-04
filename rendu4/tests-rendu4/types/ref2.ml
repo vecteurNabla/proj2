@@ -1,1 +1,1 @@
-let x = ref ref in !x 2 , !x true
+let x = ref ref in x

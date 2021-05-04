@@ -5,10 +5,14 @@ type schema_env = (string * schema) list
 
 let is_typed = List.assoc
 
+(** specialisation d'un schema :
+ * on instancie les variables liees puis on les remplace *)
 let specialize max st =
-  let instance = List.map (fun x -> (x,max ())) st.q in
+  let instanciate x _  = Some (max ()) in
+  Hashtbl.filter_map_inplace instanciate st.q ;
+
   let rec replace = function
-    | TVar x -> begin match List.assoc_opt x instance with
+    | TVar x -> begin match Hashtbl.find_opt st.q x with
         | Some y -> TVar y
         | None -> TVar x
       end
@@ -23,10 +27,49 @@ let specialize max st =
   in
   replace st.t
 
+(** generalisation d'un type :
+ * on trouve les varaibles presentes dans l'env
+ * puis on construit le schema en ne quantifiant pas sur les variables qui y sont
+ *)
+let generalize env t =
+  let vars = Hashtbl.create 0 in
+  let rec get_vars = function
+    | TVar x -> Hashtbl.add vars x ()
+    | TList t | TRef t ->
+      get_vars t
+    | TFun (t,t') | TCpl (t,t') ->
+      get_vars t ; get_vars t'
+    | _ -> ()
+  in
+  List.iter (fun (_,st) -> get_vars st.t) env ;
 
-let rec inference_polymorphe e prob top_level vars max x =
-  (* max is the highest used number for a type var, in_top_level is
-   * true if we are in a top level declaration *)
+  let filter x = not (Hashtbl.mem vars x) in
+
+  let st = make_schema ~filter:filter t in
+  st
+
+
+(** actualise les variables libres de l'environnement avec les types trouves lors de l'unifictaion *)
+let update_env types =
+  let rec update q = function
+    | TVar x as t ->
+      if Hashtbl.mem q x then t
+      else find_type x types
+
+    | TList t -> TList (update q t)
+    | TRef t -> TRef (update q t)
+
+    | TFun (t,t') -> TFun (update q t, update q t')
+    | TCpl (t,t') -> TCpl (update q t, update q t')
+
+    | t -> t
+  in
+  List.map (fun (s,st) -> (s, {q = st.q ; t = update st.q st.t}))
+
+
+(** fonction principale qui effectue l'inference *)
+let rec inference_polymorphe e prob top_level env max x =
+  (* inference simple : pour une constante *)
   let inf_const c t = match c with
     | Int i -> prob := (TInt, t):: !prob
     | Unit -> prob := (TUnit, t):: !prob
@@ -34,6 +77,7 @@ let rec inference_polymorphe e prob top_level vars max x =
     | Nil -> prob := (TList (TVar (max ())),t):: !prob
   in
 
+  (* ajoute à l'environnemnt le pattern de schema de type donne *)
   let rec add_pat_to_tenv p st env = match p, st.t with
     | Under, _ -> env
 
@@ -74,23 +118,26 @@ let rec inference_polymorphe e prob top_level vars max x =
 
   in
 
-
-  let rec inf_aux e t in_top_level vars = match e with
+  (* moulinette *)
+  let rec inf_aux e t in_top_level env = match e with
     | Let (p, e, e') ->
 
       let m = max () in
 
-      inference_polymorphe e prob (ref []) vars max m ;
+      inference_polymorphe e prob (ref []) env max m ;
       let types = Unification.unification (!prob) in
 
       let t_e = find_type m types in
-      let st_e = ( match e with App _ -> make_empty_schema | _ -> make_schema ) t_e in
+      let env' = update_env types env in
 
-      let vars' = add_pat_to_tenv p st_e vars in
+      let st_e = ( match e with App _ -> make_empty_schema | _ -> generalize env' ) t_e in
+
+      let env'' = add_pat_to_tenv p st_e env' in
 
       if in_top_level && p <> Under then top_level := (p,st_e) :: !top_level ;
 
-      inf_aux e' t in_top_level vars'
+      inf_aux e' t in_top_level env''
+
 
     | Rec (Ident s as p, e, e') ->
 
@@ -98,34 +145,40 @@ let rec inference_polymorphe e prob top_level vars max x =
 
       let st_e0 = make_empty_schema (TVar m) in
 
-      let vars0 = (s,st_e0)::vars in
+      let env0 = (s,st_e0)::env in
 
-      inference_polymorphe e prob (ref []) vars0 max m ;
+      inference_polymorphe e prob (ref []) env0 max m ;
       let types = Unification.unification (!prob) in
 
       let t_e = find_type m types in
-      let st_e = ( match e with App _ -> make_empty_schema | _ -> make_schema ) t_e in
+      let env' = update_env types env in
 
-      let vars' = (s, st_e)::vars in
+      let st_e = ( match e with App _ -> make_empty_schema | _ -> generalize env' ) t_e in
+
+      let env'' = add_pat_to_tenv p st_e env' in
 
       if in_top_level && p <> Under then top_level := (p,st_e) :: !top_level ;
 
-      inf_aux e' t in_top_level vars'
+      inf_aux e' t in_top_level env''
+
 
     | Rec (_,_,_) -> failwith "un nom de fonction recursive"
 
+
     | App(e1, e2) ->
       let m = max () in
-      inf_aux e1 (TFun(TVar m, t)) in_top_level vars ;
-      inf_aux e2 (TVar m) in_top_level vars
+      inf_aux e1 (TFun(TVar m, t)) in_top_level env ;
+      inf_aux e2 (TVar m) in_top_level env
+
 
     | Fun(p, e) ->
       let t_arg = TVar (max ()) in
       let t_res = TVar (max ()) in
       let st_arg = make_empty_schema t_arg in
       prob := (TFun(t_arg, t_res), t):: !prob;
-      let vars' = add_pat_to_tenv p st_arg vars in
-      inf_aux e t_res false vars'
+      let env' = add_pat_to_tenv p st_arg env in
+      inf_aux e t_res false env'
+
 
     | Pattern p -> begin
         match p with
@@ -134,94 +187,115 @@ let rec inference_polymorphe e prob top_level vars max x =
         | PConst c -> inf_const c t
 
         | Ident s ->
-          let sts = is_typed s vars in
-          let ts = specialize max sts in
-          prob := (ts, t)::!prob;
+          let st_s = is_typed s env in
+          let t_s = specialize max st_s in
+          prob := (t_s, t)::!prob;
 
         | PCpl (p1, p2) ->
           let m = max () in
-          inf_aux (Pattern p1) (TVar m) in_top_level vars ;
+          inf_aux (Pattern p1) (TVar m) in_top_level env ;
           prob := (t, TCpl(TVar m, TVar (max ())))::!prob ;
-          inf_aux (Pattern p2) (TVar (max ())) false vars
+          inf_aux (Pattern p2) (TVar (max ())) false env
 
         | PList (p1, p2) ->
           let m = max () in
           prob := (t, TList(TVar m))::!prob ;
-          inf_aux (Pattern p1) (TVar m) false vars ;
-          inf_aux (Pattern p2) (TList (TVar m)) false vars
+          inf_aux (Pattern p1) (TVar m) false env ;
+          inf_aux (Pattern p2) (TList (TVar m)) false env
       end
+
 
     | Val v -> begin match v with
         | Const c -> inf_const c t
         | _ -> failwith "this value cannot be typed yet\n"
       end
 
+
     | Cpl (e1, e2) ->
       let m = max () in
       let m' = max () in
       prob := (t, TCpl(TVar m, TVar m'))::!prob;
-      inf_aux e1 (TVar m) false vars ;
-      inf_aux e2 (TVar m') false vars
+      inf_aux e1 (TVar m) false env ;
+      inf_aux e2 (TVar m') false env
+
 
     | Aff (e1, e2) ->
       prob := (t, TUnit)::!prob;
       let m = max () in
-      inf_aux e2 (TVar m) false vars ;
-      inf_aux e1 (TRef (TVar m)) false vars
+      inf_aux e2 (TVar m) false env ;
+      inf_aux e1 (TRef (TVar m)) false env
 
     | Der e ->
       let m = max () in
       prob := (t, TVar m)::!prob;
-      inf_aux e (TRef (TVar m)) false vars
+      inf_aux e (TRef (TVar m)) false env
+
 
     | If (b, et, ef) ->
       let m = max (); in
       prob := (t, TVar m)::!prob;
-      inf_aux b (TBool) false vars;
-      inf_aux et (TVar m) false vars;
-      inf_aux ef (TVar m) false vars
+      inf_aux b (TBool) false env;
+      inf_aux et (TVar m) false env;
+      inf_aux ef (TVar m) false env
+
 
     | Match (e, l) ->
       let t_e = TVar (max ()) in
       let st_e = make_empty_schema t_e in
-      inf_aux e t_e false vars;
+      inf_aux e t_e false env;
       List.iter (fun (p, eo) ->
-          let vars' = add_pat_to_tenv p st_e vars in
-          inf_aux eo t false vars'
+          let env' = add_pat_to_tenv p st_e env in
+          inf_aux eo t false env'
         ) l;
+
 
     | Cons(e1, e2) ->
       let m = max () in
-      inf_aux e1 (TVar m) false vars;
-      inf_aux e2 (TList (TVar m)) false vars;
+      inf_aux e1 (TVar m) false env;
+      inf_aux e2 (TList (TVar m)) false env;
       prob := (t, TList (TVar m))::!prob
 
-    | Try (e, p, e') ->
-      inf_aux e t in_top_level vars;
-      let vars' = add_pat_to_tenv p (make_empty_schema TInt) vars in
-      inf_aux e' t false vars'
 
-    | Raise e -> inf_aux e TInt false vars
+    | Try (e, p, e') ->
+      inf_aux e t in_top_level env;
+      let env' = add_pat_to_tenv p (make_empty_schema TInt) env in
+      inf_aux e' t false env'
+
+
+    | Raise e -> inf_aux e TInt false env
 
   in
-  inf_aux e (TVar x) true vars
+  inf_aux e (TVar x) true env
 
+
+(** fonction principale *)
 let inference e =
+  (* initialisation
+   * prob = ens des contraintes
+   * toplevel = ens des identifiants déclarés en surface
+   * env = ens des types des variables connues, au debut de la stdlib *)
   let prob = ref [] in
   let toplevel = ref [] in
-  let vars = (List.map (fun (s,t) -> s, make_schema t) StdLib.types_stdlib) in
+  let env = (List.map (fun (s,t) -> s, make_schema t) StdLib.types_stdlib) in
 
+  (* fonction qui permet de donner un numero unique à chaque variable de type *)
   let max_ = ref 0 in
   let max () =
     incr max_ ; !max_
   in
 
-  inference_polymorphe e prob toplevel vars max 0 ;
+  (* calcul du type de e : comme un let x = e in x *)
+
+  inference_polymorphe e prob toplevel env max 0 ;
 
   let types = Unification.unification !prob in
 
   let t = find_type 0 types in
-  let st = ( match e with App _ -> make_empty_schema | _ -> make_schema ) t in
+  let env' = update_env types env in
+  let st = ( match e with App _ -> make_empty_schema | _ -> generalize env' ) t in
 
-  toplevel := !toplevel @ [(Ident "-", st)];
+
+  (* resultats *)
+
+  toplevel := (Ident "-", st) :: !toplevel;
   types, !prob,  !toplevel

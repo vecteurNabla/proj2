@@ -243,7 +243,7 @@ let exec () =
             if !showmoretypes then affiche_ct pb;
 
             if !showtypes || !showmoretypes then (
-              affiche_toplevel_types top_level
+              affiche_toplevel_schema top_level
             ) ;
             if !showmoretypes then affiche_type_list types ;
 

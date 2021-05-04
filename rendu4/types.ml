@@ -10,34 +10,39 @@ type types =
 
   | TVar of int
 
-type schema = { q : int list ; t : types }
 
-(* merges the two int list and removes the duplicates *)
-let merge a b =
-  let cmp x y = if x=y then 0 else if x<y then -1 else 1 in
-  let a' = List.sort cmp a in
-  let b' = List.sort cmp b in
-  let c = List.merge cmp a' b' in
-  List.sort_uniq cmp c
+type quantifiers = (int, int) Hashtbl.t
+(* key: num de var, data: num de l'instanciation (n'est utilise que dans specialize) *)
 
-let rec free_tvar = function
-  | TVar x -> [x]
+type schema = { q : quantifiers ; t : types }
 
-  | TList t | TRef t ->
-    free_tvar t
+(** on cree le schema associe au type en parametre :
+ * on calcule les variables libres à quantifier
+ * filter permet de choisir les variables acceptables, par defaut tout est accepte *)
+let make_schema ?(filter = fun _ -> true) t =
+  let free_tvar = Hashtbl.create 0 in
+  let rec fill_tbl = function
+    | TVar x -> if not (Hashtbl.mem free_tvar x) && filter x then Hashtbl.add free_tvar x 0
 
-  | TFun (t,t') | TCpl (t,t') ->
-    merge (free_tvar t) (free_tvar t')
+    | TList t | TRef t ->
+      fill_tbl t
 
-  | _ -> []
+    | TFun (t,t') | TCpl (t,t') ->
+      fill_tbl t ; fill_tbl t'
 
-let make_schema t =
-  { q = free_tvar t ;  t = t }
+    | _ -> ()
+  in
+  fill_tbl t ;
+  { q = free_tvar ;  t = t }
 
+(** cree un schema sans quantification
+ * equivaut a `make_schema ~filter:(fun _ -> false)`
+ * est plus efficace que cette derniere *)
 let make_empty_schema t =
-  { q = [] ;  t = t }
+  { q = Hashtbl.create 0 ;  t = t }
 
 
+(** trouve un type dans une liste de (int*types) *)
 let rec find_type x = function
   | [] -> TVar x
   | (y,t)::_ when x=y -> t
