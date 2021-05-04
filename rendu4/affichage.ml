@@ -187,7 +187,10 @@ and subtype_to_string t =
 
 
 let rec schema_to_string st = match st.t with
-  | TVar x -> ( if List.mem x st.q then "" else "_" ) ^ "t" ^ string_of_int x
+  | TVar x -> (if List.mem x st.q then
+                "'" ^ Char.escaped (char_of_int (97+x))
+              else "_weak" ^ string_of_int x
+             )
   | TUnit -> "unit"
   | TInt -> "int"
   | TBool -> "bool"
