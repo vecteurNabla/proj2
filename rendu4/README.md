@@ -121,6 +121,10 @@ Pour garantir que l'on ne remplace que les occurences libres, on
 retire de la liste les pattern rencontrés dans des lieurs (`fun`,
 `let`, `match`).
 
+### Typage et CPS
+
+Le typage par défaut a lieu *avant* la traduction CPS si elle doit avoir lieu. Si on souhaite en plus typer le code traduit, il faut utiliser l'option `-cpstypes`.
+
 ## Répartition du travail
 
 ### Nicolas
@@ -273,11 +277,11 @@ d'OCaml pour les exceptions non rattrapées.
 
 - `ref2.ml` ref ref
 
-- `ref3.ml` ref de listes
+- `ref3.ml` ref de listes non typable
 
 - `ref4.ml` une fonction avec variable globale
 
-*Attention* Ce programme n'est normalement pas typable mais notre manière de traiter le typage de `ref` le permet. Le programme peut s'excuter en `FouineJN`
+*Attention* Ce programme n'est normalement pas typable mais notre manière de traiter le typage de `ref` le permet. Le programme peut s'excuter en `FouineJN`.
 
 - `exc.ml` exceptions avec types non entiers, sans typage ça marche, avec ça plante
 

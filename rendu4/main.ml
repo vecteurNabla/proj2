@@ -24,6 +24,8 @@ let showtypes = ref false
 let showmoretypes = ref false
 let monotypes = ref false
 
+let cpstypes = ref false
+
 let optlist = [
   ("-showsrc", Arg.Set showsrc, "Affiche le programme en entrée");
   ("-debug", Arg.Set debug, "Active le mode de debuggage : affiche le programme en entrée et les sorties du programme " );
@@ -41,9 +43,54 @@ let optlist = [
   ("-notypes", Arg.Set notypes, "Interprète les programme sans le typer au préalable");
   ("-showtypes", Arg.Set showtypes, "Affiche le type inféré pour toutes les déclarations en surface, l’expression principale étant désignée par \"-\"");
   ("-showmoretypes", Arg.Set showmoretypes, "Affiche les contraintes engendrées, puis comme showtype, puis la liste de tous les types inférés");
-  ("-monotypes", Arg.Set monotypes, "Typage en version monomorphe (par défaut, version polymorphe")
+  ("-monotypes", Arg.Set monotypes, "Typage en version monomorphe (par défaut, version polymorphe");
+  ("-cpstypes", Arg.Set cpstypes, "Si la traduction cps est faite, type le résultat de la transformation (après avoir typé le programme non trnasformé")
 ]
 
+
+let typage result =
+  if not !notypes then begin
+    try
+      if !monotypes then begin
+
+        let pb, top_level =
+          try
+            Inference.inference  result
+          with e -> print_string "erreur dans l'inf\n";
+            raise e
+        in
+
+        if !showmoretypes then affiche_ct pb;
+
+        let types =
+          try
+            Unification.unification pb
+          with e -> print_string "erreur dans l'unif\n"; raise e
+        in
+
+        if !showtypes || !showmoretypes then (
+          (* affiche_toplevel_types types top_level ; *)
+          print_string ( "- : " ^ type_to_string (Types.find_type 0 types) ^ "\n") ;
+        ) ;
+        if !showmoretypes then affiche_type_list types ;
+
+      end else begin
+
+        let types, pb, top_level =  Polymorphisme.inference result in
+
+        if !showmoretypes then affiche_ct pb;
+
+        if !showtypes || !showmoretypes then (
+          affiche_toplevel_schema top_level
+        ) ;
+        if !showmoretypes then affiche_type_list types ;
+
+      end
+
+    with e -> print_string "Erreur de typage\n" ; raise e
+  end ;
+
+  flush stdout
 
 
 let compile env e =
@@ -72,6 +119,9 @@ let read_stdin () =
 
 let calc result =
   try
+
+    typage result ;
+
     if !tree then begin
       affiche_expr_tree result ; print_newline ()
     end ;
@@ -90,11 +140,10 @@ let calc result =
         affiche_expr_tree main_transform ; print_newline ()
       end ;
 
-      if !autotest then begin
-        ()
-      end ;
+      if !cpstypes then typage main_transform ;
 
       if !run then begin
+
         let v = compile StdLib.stdlib main_transform
         in
         if !outval then begin
@@ -120,6 +169,8 @@ let calc result =
   | Not_expected s -> print_string ("erreur: " ^ s ^ " est attendu.e\n")
   | StdLib.PrInt_not_int -> print_string "erreur: argument de la fonction prInt n'est pas entier comme attendu\n"
   | Match_Failure s -> print_string ( "erreur: matching impossible" ^ s ^ "\n")
+  | Unification.Not_unifyable -> print_string "Impossible d'unifier\n" ;
+  | Unification.Cyclic_type pb -> print_string "Type cyclique\n" ; affiche_ct pb
 
 let exec () =
 
@@ -210,55 +261,9 @@ let exec () =
         if !reduc then Reduction.reduction parsed else parsed
       in
 
-      (* TYPAGE *)
-      if not !notypes then begin
-        try
-          if !monotypes then begin
-
-            let pb, top_level =
-              try
-                Inference.inference  result
-              with e -> print_string "erreur dans l'inf\n";
-                raise e
-            in
-
-            if !showmoretypes then affiche_ct pb;
-
-            let types =
-              try
-                Unification.unification pb
-              with e -> print_string "erreur dans l'unif\n"; raise e
-            in
-
-            if !showtypes || !showmoretypes then (
-              (* affiche_toplevel_types types top_level ; *)
-              print_string ( "- : " ^ type_to_string (Types.find_type 0 types) ^ "\n") ;
-            ) ;
-            if !showmoretypes then affiche_type_list types ;
-
-          end else begin
-
-            let types, pb, top_level =  Polymorphisme.inference result in
-
-            if !showmoretypes then affiche_ct pb;
-
-            if !showtypes || !showmoretypes then (
-              affiche_toplevel_schema top_level
-            ) ;
-            if !showmoretypes then affiche_type_list types ;
-
-          end
-
-        with e -> print_string "Erreur de typage\n" ; raise e
-      end ;
-
-      flush stdout ;
-
       calc result
 
     with
-    | Unification.Not_unifyable -> print_string "Impossible d'unifier\n" ;
-    | Unification.Cyclic_type pb -> print_string "Type cyclique\n" ; affiche_ct pb ;
     | e -> (* print_string "erreur de saisie\n" *)
       raise e
 

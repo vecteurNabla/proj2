@@ -4,7 +4,20 @@ open Parser;;        (* le type "token" est défini dans parser.mli *)
 exception Eof;;
 }
 
-let ident = ['a'-'z' '_']['0'-'9' 'a'-'z' 'A'-'Z' ''' '_']*
+let ident =
+(['a'-'z' '_']['0'-'9' 'a'-'z' 'A'-'Z' ''' '_']*)
+| "( + )"
+| "( * )"
+| "( - )"
+| "( / )"
+| "( <> )"
+| "( = )"
+| "( >= )"
+| "( <= )"
+| "( > )"
+| "( < )"
+| "( || )"
+| "( && )"
 
 rule token = parse    (* la "fonction" aussi s'appelle token .. *)
 | [' ' '\t' '\n']                            { token lexbuf }
@@ -39,9 +52,9 @@ rule token = parse    (* la "fonction" aussi s'appelle token .. *)
 | "false"                                    { BOOL false }
 | "begin"                                    { LPAREN }
 | "end"                                      { RPAREN }
-| "raise"									 { RAISE }
-| "try"										 { TRY }
-| 'E'										 { E }											 
+| "raise"                                    { RAISE }
+| "try"	                                     { TRY }
+| 'E'                                        { E }
 | '|'                                        { PIPE }
 | ";;"                                       { DBLSEMICOL }
 | "::"                                       { CONS }
