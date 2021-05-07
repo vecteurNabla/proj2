@@ -1,1 +1,1 @@
-fun (x,y) -> x
+begin fun (x,y) -> x end  = fst

@@ -50,7 +50,7 @@ let generalize env t =
 
 
 (** actualise les variables libres de l'environnement avec les types trouves lors de l'unifictaion *)
-let update_env types =
+let update_schema types st =
   let rec update q = function
     | TVar x as t ->
       if Hashtbl.mem q x then t
@@ -64,7 +64,10 @@ let update_env types =
 
     | t -> t
   in
-  List.map (fun (s,st) -> (s, {q = st.q ; t = update st.q st.t}))
+  {q = st.q ; t = update st.q st.t}
+
+let update_env types =
+  List.map (fun (s,st) -> (s, update_schema types st))
 
 
 (** fonction principale qui effectue l'inference *)
@@ -130,7 +133,7 @@ let rec inference_polymorphe e prob top_level env max x =
       let t_e = find_type m types in
       let env' = update_env types env in
 
-      let st_e = ( match e with App _ -> make_empty_schema | _ -> generalize env' ) t_e in
+      let st_e = ( match e,t_e with _ , TRef _ | App _ , _ -> make_empty_schema | _ -> generalize env' ) t_e in
 
       let env'' = add_pat_to_tenv p st_e env' in
 
@@ -153,7 +156,7 @@ let rec inference_polymorphe e prob top_level env max x =
       let t_e = find_type m types in
       let env' = update_env types env in
 
-      let st_e = ( match e with App _ -> make_empty_schema | _ -> generalize env' ) t_e in
+      let st_e = ( match e,t_e with _ , TRef _ | App _ , _ -> make_empty_schema | _ -> generalize env' ) t_e in
 
       let env'' = add_pat_to_tenv p st_e env' in
 
@@ -292,10 +295,10 @@ let inference e =
 
   let t = find_type 0 types in
   let env' = update_env types env in
-  let st = ( match e with App _ -> make_empty_schema | _ -> generalize env' ) t in
-
+  let st = ( match e,t with _ , TRef _ | App _ , _ -> make_empty_schema | _ -> generalize env' ) t in
 
   (* resultats *)
 
   toplevel := (Ident "-", st) :: !toplevel;
+  toplevel := update_env types !toplevel ;
   types, !prob,  !toplevel

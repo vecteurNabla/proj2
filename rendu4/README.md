@@ -1,6 +1,53 @@
-# FouineJN - rendu 3 - avril 2021
+# FouineJN - rendu 4 - mai 2021
 
 Robin Jourde & Nicolas Nardino
+
+```
+                                                    `=xvCv!':^\czzc|;,          
+                                                   .0vsFfU6Qe!,.``'~;LE8a6deyk, 
+                                                   =yDfz\,r|:         :'?yRCoDR 
+                                                   -0Q'                   `raQk 
+                                                    wj                        O|
+    @@@@   @@@   @   @  @@@  @   @  @@@@            Q=   'e$E:        oO0z   ~0!
+    @     @   @  @   @   @   @@  @  @               ?g'  |8p8B,     `CQaQ|  ;#' 
+    @@@   @   @  @   @   @   @ @ @  @@@              ,@c`  ``:w! ` `{:    '=g,  
+    @     @   @  @   @   @   @  @@  @                 @;pu^`   zge8B-  'tu@;`   
+    @      @@@    @@@   @@@  @   @  @@@@ (JN)         Q\l!:C9c- ^?+.`^e/` Q     
+                                                      dai=   ,vp9yo6i~    p"    
+                                                     .Q:;e     :z :m      lz    
+                                                    `gs `#'     %-'D      :g    
+                                                   '#z   'm     :E B      ,0    
+         'iAg##N6/.    -\e%##8Xc,                 !B!     .a`    z|%"     vf    
+       ,8@@@@@@@@@@A``X@@@@@@@@@@#:              iQ,       "O`   :#A;    .Q,    
+      ;@@@@@@@@@@@@@##@@@@@@@@@@@@@+            |Q,         j7   -@d!   `R=     
+      B@@@@@@@@@@@@@@@@@@@@@@@@@@@@g           '@:          fi   -@@`  `0v      
+      Q@@@@@@@@@@@@@@@@@@@@@@@@@@@@Q          `#7           9+   ^@{   ue       
+      3@@@@@@@@@@@@@@@@@@@@@@@@@@@@e         `Uk            %:   dm   ,Q`       
+      `g@@@@@@@@@@@@@@@@@@@@@@@@@@N`        ~W\     '       #~  Cd    kv        
+        u@@@@@@@@@@@@@@@@@@@@@@@@j         vd'      e      `Q. \Q!   \@,        
+         -j@@@@@@@@@@@@@@@@@@@@j-         -de        ~a`    L% |:g  `9lK/       
+            |D@@@@@@@@@@@@@@d=          `#$          \l    c9:7,D  w| `O\       
+              .7Q@@@@@@@@Bi-            OD`          :d    =Q8`!6 '@`  `d|      
+                 :m@@@@9:              lQ`            Q,   .@C =j '@d'  `B-     
+                   -6e.               ,@!             |K    fj f\ '@+g;  mF     
+                                      pm              `Q!    cEB' rN ze-!|B     
+                                     ,@'              |ka+~,;{CU `B/ +Kya/6     
+                                     t6               B,d>Lw!QDa xd   !dp|`     
+                                     ma          '!=LFQ'!LOdu#=w Q:             
+                                     o$         `:,''.:/uoC=`,DO Q:             
+                                     |Q                   -+t3@@,R;             
+                                     -@,                      'd\ei             
+                                      $y                       `Qxe             
+                                      :@,                       Rc%             
+                                       %j                       Q%k             
+                                       0C                      'QWl             
+                                `'~;\uKx` ^R                   avQ,             
+           `,^luuo3jffttttttfuuCzL=!,`    \@g!                ?dz6              
+      -!vCCx=:`                          ,B|!@'             'w@OgKKWRpu+``  ``  
+  '?jjv!`                            `:\9W\$9!           `!CB#kx7l=;ifkBv:,!'~  
+\Ku:    '"``-'~,..':+\>>?/zywpp9k9kXmaL!` `Ql",,,,,,'.`      -!L\=jQD//+:,`:''` 
+!jo3juujzlvzzzzzvc\?;!!::,'-`               ~=||=>>?||\lzzzzoe$gQ8e>`     `     
+```
 
 ## Utilisation
 
@@ -82,11 +129,19 @@ retire de la liste les pattern rencontrés dans des lieurs (`fun`,
 
 - implémentation de l'autotest
 
+
+- monomorphisme
+
 ### Robin
 
 - traduction et options associées
 
 - réduction
+
+
+- unification (à partir du TP10 th-prog)
+
+- polymorphisme
 
 ## Tests
 
@@ -186,7 +241,7 @@ d'OCaml pour les exceptions non rattrapées.
 
 - `collision_k_ident.ml` on utilise un identifiant qui sera utilisé
   lors de la transformation pour représenter une continuation, cela
-  engendre une erreur pour ocmal qui n'arrive pas à typer
+  engendre une erreur de typage
 
 ### types
 
@@ -198,4 +253,38 @@ d'OCaml pour les exceptions non rattrapées.
 
 - `let4.ml` identité appliquée à l'indentité
 
-- `
+- `let5.ml` déclarations imbriquées, `if` et couples
+
+- `let6.ml` `fun`, `=` et `fst`
+
+- `let7.ml` `fun` et `let` imbriqués
+
+- `let8.ml` double identité
+
+- `let9.ml` déclarations d'une même variable plusieurs fois
+
+- `rec.ml` fonction récursive simple
+
+- `rec2.ml` polymorphe, longueur d'une liste qcq
+
+- `rec3.ml` fonction qui s'appelle elle même : la fonction est typable mais son exéction ne termine pas. n'est pas excutée dans ce code
+
+- `ref.ml` ref de fonctions
+
+- `ref2.ml` ref ref
+
+- `ref3.ml` ref de listes
+
+- `ref4.ml` une fonction avec variable globale
+
+*Attention* Ce programme n'est normalement pas typable mais notre manière de traiter le typage de `ref` le permet. Le programme peut s'excuter en `FouineJN`
+
+- `exc.ml` exceptions avec types non entiers, sans typage ça marche, avec ça plante
+
+- `exc2.ml` exceptions bien typées (entiers)
+
+- `stdlib.ml` `=` polymorphe
+
+- `stdlib2.ml` `<>`, `=`, `if`
+
+- `stdlib3.ml` `+`, `*`, `fst`, `snd`

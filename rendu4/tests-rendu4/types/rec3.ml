@@ -1,2 +1,1 @@
-let f x = if x = 0 then -1 else f (x-1)
-in f 42
+let rec f x = f (f 1) in f
