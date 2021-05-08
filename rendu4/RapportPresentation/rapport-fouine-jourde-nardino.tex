@@ -1,4 +1,4 @@
-\documentclass[a4, 11pt, titlepage]{article}
+\documentclass[a4, 11pt, titlepage]{scrartcl}
 
 \usepackage[french]{babel}
 \usepackage{fontspec}
@@ -46,7 +46,10 @@ RawFeature={+ss06}, ItalicFeatures={Ligatures=Rare}]
 
 \setlength{\epigraphwidth}{0.6\textwidth}
 
-\title{Rapport projet Fouine}
+\addtokomafont{disposition}{\rmfamily}
+
+\title{\textsc{FouineJN}, un langage Jovial et Naturel}
+\subtitle{or How I learned to stop worrying and love CPS}
 \author{Robin \bsc{Jourde} \& Nicolas \bsc{Nardino}}
 \date{mai 2021}
 
@@ -76,13 +79,13 @@ récursives.}{\cite{LaHorde}}
 
 \tableofcontents
 
-\section{Présentation}
+\section{Présentation}\label{sec:1}
 
 Foino (Martes foina) aŭ estas specio de marteso kiu havas brilan
 blugrizan ĝis blubrunan hararon, iom malpli delikatan ol tiu de la
 arbara marteso; duobla makulo sur la gorĝo estas blanka.~\cite{wiki:001}
 
-\fouine\ est un interpréteur de \texttt{FouineJN} (Fouine
+\fouine\ est un interpréteur de \textsc{FouineJN} (Fouine
 Joviale et Naturelle~\footnote{[Citation~Needed]}), sous-ensemble du
 langage de programmation national, \textsc{OCaml}.
 
@@ -102,6 +105,39 @@ et le parser associé est généré avec \textsc{Menhir}~\ref{fig:menhir}.
   \caption{\label{fig:menhir} Exemple de menhir}
 \end{figure}
 
+\section{Organisation et répartition du travail}\label{sec:2}
+
+Comme dit plus haut, \fouine\ est prorammé principalement en
+\textsc{OCaml}, avec pas moins de 12 fichiers
+\texttt{.ml}\footnote{Source: \texttt{ls -al | grep -c "\textbackslash
+    .ml\$"}}~! Nous les détaillerons plus tard. Ils sont accompagnés
+d'un \texttt{lexer.mll} et \texttt{parser.mly}, qui à eux deux,
+spécifient la grammaire de \textsc{FouineJN}.
+
+Dans un ordre peu ou prou chronologique, les fichiers \texttt{.ml}
+sont~:
+\begin{description}
+\item[expr.ml] La base de la pyramide, c'est ici qu'on définit les
+  expressions.
+\item[eval.ml] Le cœur du travail, c'est là que la fouine travaille
+\item[main.ml] L'enrobage
+\item[affichage.ml] Parce que c'est pratique d'avoir un retour sur ce
+  qui se passe
+\item[memory.ml] Pouvoir se souvenir de choses est un avantage
+  évolutif certain, pas étonnant qu'une fouine en bénéficie
+\item[stdLib.ml] Des fonctions tout plein (en particulier, nos
+  opérateurs infixes)
+\item[transformation.ml] Gère le transformation CPS des programmes en
+  entrée
+\item[reduction.ml] Aide le fichier précédent dans sa quète
+\item[types.ml] On type enfin notre langage~! Analogue de
+  \texttt{expr.ml}
+\item[inference.ml] L'inférence de type monomorphe
+\item[polymorphisme.ml] blablabla polymorphe
+\item[unification.ml] Ze algorithme of unification!
+\end{description}
+
+Un, deux, trois\ldots\ Douze~! Le compte y est.
 
 \cite{Landin66}.
 
