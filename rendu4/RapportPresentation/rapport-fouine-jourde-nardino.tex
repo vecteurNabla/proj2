@@ -15,6 +15,8 @@ RawFeature={+ss06}, ItalicFeatures={Ligatures=Rare}]
 
 \usepackage{url}
 
+\usepackage{graphicx}
+
 
 % prettier greek letters
 \renewcommand{\phi}{\varphi}
@@ -40,6 +42,7 @@ RawFeature={+ss06}, ItalicFeatures={Ligatures=Rare}]
 \newcommand{\Uc}[0]{\mathcal{U}}
 \newcommand{\Pc}[0]{\mathcal{P}}
 
+\newcommand{\fouine}[0]{\texttt{fouine}}
 
 \setlength{\epigraphwidth}{0.6\textwidth}
 
@@ -79,9 +82,30 @@ Foino (Martes foina) aŭ estas specio de marteso kiu havas brilan
 blugrizan ĝis blubrunan hararon, iom malpli delikatan ol tiu de la
 arbara marteso; duobla makulo sur la gorĝo estas blanka.~\cite{wiki:001}
 
-\texttt{fouine} est un interpréteur de \texttt{FouineJN} (Fouine
+\fouine\ est un interpréteur de \texttt{FouineJN} (Fouine
 Joviale et Naturelle~\footnote{[Citation~Needed]}), sous-ensemble du
-langage de programmation national, \texttt{OCaml}~\cite{Landin66}.
+langage de programmation national, \textsc{OCaml}.
+
+\fouine\ est programmé principalement \textsc{OCaml}~\ref{fig:ocaml},
+et le parser associé est généré avec \textsc{Menhir}~\ref{fig:menhir}.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.33\linewidth]{figures/bechamel.png}
+  \caption{\label{fig:ocaml} Exemple de béchamel, dans laquelle on
+    peut trouver \texttt{caml}}
+\end{figure}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.33\linewidth]{figures/menhir.JPEG}
+  \caption{\label{fig:menhir} Exemple de menhir}
+\end{figure}
+
+
+\cite{Landin66}.
+
+
 
 \bsc{Tchana2025}~\cite{Tchana21}
 
