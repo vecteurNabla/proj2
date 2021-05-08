@@ -1,9 +1,12 @@
 \documentclass{beamer}
 
 \usepackage[utf8]{inputenc}
-\usepackage[francais]{babel}
-\usepackage{cmbright}
+\usepackage[french]{babel}
+
 \usepackage{verbatim}
+
+\usepackage{tikz}
+
 
 \setbeamertemplate{navigation symbols}{}
 
@@ -14,7 +17,7 @@
 \usecolortheme{seahorse}
 
 \title{Présentation projet Fouine}
-\author{Robin \bsc{Jourde} \& Nicolas \bsc{Nardino}}
+\author{Robin Jourde \& Nicolas Nardino}
 \date{mai 2021}
 
 \begin{document}
@@ -25,7 +28,7 @@
 \end{frame}
 
 
-\begin{frame}
+\begin{frame}{Dites \og Bonjour \fg~à notre amie la fouine !}
   \begin{center}
     \tiny
     \verbatiminput{fouine-ascii.txt}
@@ -33,16 +36,14 @@
 \end{frame}
 
 
-\begin{frame}{Sommaire}
+\begin{frame}{Table de matières}
   \tableofcontents
 \end{frame}
 
 
-\section{on cause}
-\begin{frame}{À nous de trouver des trucs à dire maintenant}
-
-\bsc{Des Trucs}
-
+\section{Fouine, qu'est-ce que c'est ?}
+\begin{frame}{}
+  \include{graphe}
 \end{frame}
 
 \end{document}
