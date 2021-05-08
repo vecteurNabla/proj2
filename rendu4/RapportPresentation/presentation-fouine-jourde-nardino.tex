@@ -14,13 +14,23 @@
   \end{frame}
 }
 
-\setbeamertemplate{navigation symbols}{}
+\def\labelenumi{\theenumi}
+\usepackage{enumitem}
 
-% \usetheme{Boadilla}
+\setitemize[1]{label=$\circ$}
+%\usetheme{Luebeck}
 \usetheme{CambridgeUS}
 
 % \usecolortheme{dolphin}
 \usecolortheme{seahorse}
+
+\setbeamertemplate{section in toc}{%
+   ({\inserttocsectionnumber})~{\inserttocsection}%
+}
+
+\setbeamertemplate{navigation symbols}{}
+
+
 
 \title{Présentation projet Fouine}
 \author{Robin Jourde \& Nicolas Nardino}

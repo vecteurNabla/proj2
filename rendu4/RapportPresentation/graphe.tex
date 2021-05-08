@@ -1,0 +1,77 @@
+\usetikzlibrary {arrows.meta,graphs,graphdrawing}
+\usegdlibrary {layered}
+
+\tiny
+\tikz[>={Stealth[round,sep]}]
+\graph [layered layout, sibling distance = 1pt, layer distance = 0.8cm,
+nodes=draw, edges=rounded corners]
+{
+
+  const -> {
+    Int ,
+    Unit ,
+    Bool ,
+    Nil
+  } ;
+
+  value -> {
+    Const -> const  ,
+    Ref ,
+    StdLib -> expr  ,
+    VFun -> { pattern , env , expr } ,
+    VCpl  ,
+    VList
+  } ;
+  value <- {
+    StdLib ,
+    VCpl ,
+    VList
+  } ;
+  env -> value ;
+
+  pattern -> {
+    Ident ,
+    Under ,
+    PConst -> const ,
+    PCpl ,
+    PList
+  } ;
+  pattern <- {,
+    PCpl ,
+    PList
+  } ;
+
+  expr -> {
+    Val -> value ,
+    Pattern -> pattern ,
+    Let -> pattern ,
+    Fun -> pattern ,
+    Rec -> pattern,
+    App ,
+    Cpl ,
+    Aff ,
+    Der ,
+    If ,
+    Match -> pattern matching ,
+    Cons ,
+    Try -> pattern ,
+    Raise
+  };
+  expr <- {
+    Let ,
+    Fun ,
+    Rec ,
+    App ,
+    Cpl ,
+    Aff ,
+    Der ,
+    If ,
+    Match ,
+    Cons ,
+    Try ,
+    Raise
+  };
+
+  pattern matching -> { pattern, expr } ;
+
+};
