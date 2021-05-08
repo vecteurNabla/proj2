@@ -7,4 +7,4 @@ rapport: rapport-fouine-jourde-nardino.tex biblio.bib
 	xelatex $<
 
 presentation: presentation-fouine-jourde-nardino.tex
-	pdflatex -shell-escape $<
+	lualatex -shell-escape $<
