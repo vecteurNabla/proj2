@@ -1,4 +1,4 @@
-\documentclass[a4, 11pt, titlepage]{scrartcl}
+\documentclass[a4, 12pt, titlepage]{scrartcl}
 
 \usepackage[french]{babel}
 \usepackage{fontspec}
@@ -152,9 +152,25 @@ ces dernières, l'évaluation.
 
 Mais travailler avec des expressions brutes, ce n'est pas pratique, et
 alors N. parsa. Et parsa. Et parsa. Et il vit que le parser était bien
-(\textit{spoiler alert}, il n'était pas si bien que ça).
+(\emph{spoiler alert}, il n'était pas si bien que ça).
 
+Quand vint le filtrage, un singulier shift/reduce conflict nous
+embêta des semaines durant. Il s'agissait de pouvoir imbriquer deux
+\texttt{match}. Jusqu'au jour de la Libération, quand le
+sage D.H. nous en libéra.
 
+Entretemps, les continuations arrivèrent, et R. entreprit de
+métamorphoser ce que les vils utilisateurs envoyaient à notre
+bien-aîmée \fouine\ en CPS, tandis que N. passait \texttt{eval} en
+CPS, afin de pouvoir traiter les exceptions. La transformation posa
+quelques problèmes à R., notamment pour les fonctions récursives, et
+il dut utiliser la ruse afin de triompher (\ie\ des réductions).
+
+Mais le triomphe fut court, et le typage pointa le bout de sa
+truffe. Alors que N. inférait monomorphiquement, R. unifiait les
+peuples sous sa banière, et quand ce fut fait, et que le calme
+retomba, N. put enfin s'atteler aux réparations tant attendues du
+parser, alors que R. s'adonna à son chef-d'œuvre, le \emph{plusieurs-formes}.
 
 \cite{Landin66}.
 
