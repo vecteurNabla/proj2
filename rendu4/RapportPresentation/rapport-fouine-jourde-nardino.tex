@@ -1,9 +1,9 @@
-\documentclass[a4, 11pt]{article}
+\documentclass[a4, 11pt, titlepage]{article}
 
 \usepackage[french]{babel}
 \usepackage{fontspec}
 \setmainfont{EB Garamond}[Numbers={Proportional, OldStyle},
-RawFeature={+ss06}, ItalicFeatures={Ligature=Rare}]
+RawFeature={+ss06}, ItalicFeatures={Ligatures=Rare}]
 \usepackage{hyperref}
 \usepackage{amsmath}
 \usepackage{amssymb}
@@ -47,10 +47,11 @@ RawFeature={+ss06}, ItalicFeatures={Ligature=Rare}]
 \maketitle
 
 \begin{center}
-  \footnotesize
+  \small
   \verbatiminput{fouine-ascii.txt}
 \end{center}
 
+\newpage
 
 \tableofcontents
 
