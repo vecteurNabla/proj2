@@ -129,19 +129,25 @@ Le typage par défaut a lieu *avant* la traduction CPS si elle doit avoir lieu. 
 
 ### Nicolas
 
+- parser
+
+- debut de l'évaluation
+
 - passage de `eval` en cps
 
 - implémentation de l'autotest
-
 
 - monomorphisme
 
 ### Robin
 
+- évaluation
+
+- affichage
+
 - traduction et options associées
 
 - réduction
-
 
 - unification (à partir du TP10 th-prog)
 
