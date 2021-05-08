@@ -110,7 +110,7 @@ et le parser associé est généré avec \textsc{Menhir} (\ref{fig:menhir}).
 \subsection{Organisation}\label{subsec:21}
 
 
-Comme dit plus haut, \fouine\ est prorammé principalement en
+Comme dit plus haut, \fouine\ est programmé principalement en
 \textsc{OCaml}, avec pas moins de 12 fichiers
 \texttt{.ml}\footnote{Source: \texttt{ls -al | grep -c "\textbackslash
     .ml\$"}}~! Nous les détaillerons plus tard. Ils sont accompagnés
@@ -130,9 +130,9 @@ sont~:
   évolutif certain, pas étonnant qu'une fouine en bénéficie
 \item[stdLib.ml] Des fonctions tout plein (en particulier, nos
   opérateurs infixes)
-\item[transformation.ml] Gère le transformation CPS des programmes en
+\item[transformation.ml] Gère la transformation CPS des programmes en
   entrée
-\item[reduction.ml] Aide le fichier précédent dans sa quète
+\item[reduction.ml] Aide le fichier précédent dans sa quête
 \item[types.ml] On type enfin notre langage~! Analogue de
   \texttt{expr.ml}
 \item[inference.ml] L'inférence de type monomorphe
@@ -146,7 +146,7 @@ Un, deux, trois\ldots\ Douze~! Le compte y est.
 
 Au commencement, il n'y avait rien\ldots\ Enfin, il y avait le
 mini-projet de \textsc{Proj1} de N. (noms masqués pour préserver
-l'anonymité), qui a peut-être un peu aidé. Mais le vaillant R. dit~:
+l'anonymat), qui a peut-être un peu aidé. Mais le vaillant R. dit~:
 <<~Que les expressions soient~>> et les expressions furent. Et avec
 ces dernières, l'évaluation.
 
@@ -159,16 +159,16 @@ embêta des semaines durant. Il s'agissait de pouvoir imbriquer deux
 \texttt{match}. Jusqu'au jour de la Libération, quand le
 sage D.H. nous en libéra.
 
-Entretemps, les continuations arrivèrent, et R. entreprit de
+Entre-temps, les continuations arrivèrent, et R. entreprit de
 métamorphoser ce que les vils utilisateurs envoyaient à notre
-bien-aîmée \fouine\ en CPS, tandis que N. passait \texttt{eval} en
+bien-aimée \fouine\ en CPS, tandis que N. passait \texttt{eval} en
 CPS, afin de pouvoir traiter les exceptions. La transformation posa
 quelques problèmes à R., notamment pour les fonctions récursives, et
 il dut utiliser la ruse afin de triompher (\ie\ des réductions).
 
 Mais le triomphe fut court, et le typage pointa le bout de sa
 truffe. Alors que N. inférait monomorphiquement, R. unifiait les
-peuples sous sa banière, et quand ce fut fait, et que le calme
+peuples sous sa bannière, et quand ce fut fait, et que le calme
 retomba, N. put enfin s'atteler aux réparations tant attendues du
 parser, alors que R. s'adonna à son chef-d'œuvre, le \emph{plusieurs-formes}.
 

@@ -166,6 +166,7 @@ let x = not (( > ) (0) (1)) in (if x then prInt (1) else prInt (0))
 \begin{frame}{Exemple détaillé : \texttt{prInt}}
   \begin{itemize}
   \item code de la fonction :
+  \end{itemize}
 
     \begin{minted}{ocaml}
       let \_prInt m = function
@@ -173,6 +174,7 @@ let x = not (( > ) (0) (1)) in (if x then prInt (1) else prInt (0))
       | \_ -> raise PrInt\_not\_int
     \end{minted}
 
+  \begin{itemize}
   \item insertion dans l'environnement :
 
     \mint{ocaml}|("prInt", StdLib _prInt) :: ...|
