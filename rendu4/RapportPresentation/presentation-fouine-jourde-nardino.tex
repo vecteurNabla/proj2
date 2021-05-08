@@ -4,16 +4,25 @@
 \usepackage[french]{babel}
 
 \usepackage{verbatim}
+\usepackage{minted}
 
 \usepackage{tikz}
 
+\newcommand{\tocpage}{
+  \begin{frame}
+    \tableofcontents[currentsection]
+  \end{frame}
+}
+
+
+\newcommand{\cmd}[1]{\mint{bash}|#1|}
 
 \setbeamertemplate{navigation symbols}{}
 
-\usetheme{Boadilla}
-%\usetheme{CambridgeUS}
+% \usetheme{Boadilla}
+\usetheme{CambridgeUS}
 
-%\usecolortheme{dolphin}
+% \usecolortheme{dolphin}
 \usecolortheme{seahorse}
 
 \title{Présentation projet Fouine}
@@ -42,8 +51,145 @@
 
 
 \section{Fouine, qu'est-ce que c'est ?}
-\begin{frame}{}
+
+\tocpage
+
+\begin{frame}{Un terme polysémique}
+  \begin{itemize}
+  \item<2-> un petit animal trop mignon : \\
+    \includegraphics[width=0.2\linewidth]{figures/photo_fouine.jpg}
+  \item<3-> un sous langage de OCaml
+  \item<4-> un interpréteur de ce sous langage
+  \end{itemize}
+
+  \visible<5-> {Par la suite on n'utilisera le terme que dans ses 2 derniers sens.}
+\end{frame}
+
+\begin{frame}{Le langage}
+  Grammaire simplifiée :
+  \begin{align*}
+    e~:=&~let~(rec)~p~=~e_1~in~e_2~|~fun~p~\to~e_1~|~e_1~e_2~|~e_1~:=~e_2 \\
+        &|~!e_1~|~if~e_1~then~e_2~else~e_3~|~match~e_1~with~[|~p_i~->~e_i] \\
+        &|~e_1~::~e_2~|~try~e_1~with~E~p~->~e_2~|~raise~e_1~|~p
+  \end{align*}
+
+  $p$ représente un pattern :
+  $$
+  p~:=~x~|~\_~|~k~|~p_1,~p_2~|~p_1~::~p_2
+  $$
+
+  $k$ est une constante
+
+  \visible <2-> {Et les opérations arithmétiques me diriez vous ? ... }
+
+  \visible <3-> {... Et là vous croyiez que j'allais le dire maintenant mais en fait non, il a falloir attendre ! Suspens ...!!  }
+\end{frame}
+
+
+\begin{frame}{L'interprète}
+  \begin{itemize}
+
+  \item<1-> \cmd{./fouine [options] test1515.ml}
+
+  \item<2->  Mais quelles options ??? Demandons à fouine : \cmd{./fouine --help}
+
+  \item<3->  \texttt{
+      -showsrc -debug -tree -outval -stdin -cps -outcode -outcode-tree -run -autotest -optim -reduc -prefix -notypes -showtypes -showmoretypes -monotypes -cpstypes
+    }
+
+  \end{itemize}
+\end{frame}
+
+
+\begin{frame}{Un exemple}
+
+   \texttt{not.ml} :
+
+  \mint{ocaml}|
+  let x = not (0>1) in if x then prInt 1 else prInt 0
+  |
+
+ \begin{tt}
+./fouine -debug -outval -showtypes not.ml
+
+x : bool
+
+- : int
+
+let x = not (( > ) (0) (1)) in (if x then prInt (1) else prInt (0))
+
+1
+
+1
+\end{tt}
+
+\end{frame}
+
+\section{Fouine, comment ça marche ?}
+
+\tocpage
+
+\begin{frame}{Que fait fouine ?}
+  Étapes :
+  \begin{enumerate}
+  \item Lire : lexer et parser
+  \item Typer
+  \item (Si souhaité) traduction CPS
+  \item (Si souhaité) réduction
+  \item Évaluer
+  \end{enumerate}
+
+  Pour tout cela on a besoin de représenter les expressions...
+\end{frame}
+
+\begin{frame}{Des constructeurs et des types}
   \include{graphe}
+\end{frame}
+
+
+
+\begin{frame}{La bibliothèque standard}
+  On tient notre promesse !
+
+  \begin{itemize}
+  \item fst , snd
+  \item prInt
+  \item ref
+  \item ( + ) , ( - ) , ( * ) , ( / )
+  \item ( \&\& ) ,  ( || )
+  \item not
+  \item ( <= ) , ( >= ) , ( < ) , ( > )
+  \item ( = ) , ( <> )
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Exemple détaillé : \texttt{prInt}}
+  \begin{itemize}
+  \item code de la fonction :
+
+    \begin{minted}{ocaml}
+      let \_prInt m = function
+      | Const (Int i) -> (print\_int i ; print\_newline () ; ~\& (Int i) )
+      | \_ -> raise PrInt\_not\_int
+    \end{minted}
+
+  \item insertion dans l'environnement :
+
+    \mint{ocaml}|("prInt", StdLib _prInt) :: ...|
+
+  \item Type :
+
+    \mint{ocaml}| ("prInt", TFun(TInt, TInt) ):: ... |
+
+
+  \end{itemize}
+  \end{frame}
+
+\section{Conclusion}
+\begin{frame}{C'est fini !}
+  \begin{center}
+    \Huge Merci à tous \& Bisous !
+  \end{center}
 \end{frame}
 
 \end{document}
