@@ -1,8 +1,42 @@
-\documentclass{article}
+\documentclass[a4, 11pt]{article}
 
-\usepackage[utf8]{inputenc}
-\usepackage[francais]{babel}
+\usepackage[french]{babel}
+\usepackage{fontspec}
+\setmainfont{EB Garamond}[Numbers={Proportional, OldStyle},
+RawFeature={+ss06}, ItalicFeatures={Ligature=Rare}]
+\usepackage{hyperref}
+\usepackage{amsmath}
+\usepackage{amssymb}
 \usepackage{verbatim}
+
+\usepackage{float}
+
+
+
+% prettier greek letters
+\renewcommand{\phi}{\varphi}
+\renewcommand{\epsilon}{\varepsilon}
+
+% sets
+\newcommand{\N}[0]{\mathbb{N}}
+\newcommand{\Z}[0]{\mathbb{Z}}
+\newcommand{\Q}[0]{\mathbb{Q}}
+\newcommand{\R}[0]{\mathbb{R}}
+
+\newcommand{\qed}[0]{\begin{flushright} $\Box$ \end{flushright}}
+
+\newcommand{\ie}[0]{\textit{i.e.}}
+
+% relation symbols
+\newcommand{\rel}[0]{\mathcal{R}}
+
+% calligraphic letters
+\newcommand{\Mc}[0]{\mathcal{M}}
+\newcommand{\Nc}[0]{\mathcal{N}}
+\newcommand{\Lc}[0]{\mathcal{L}}
+\newcommand{\Uc}[0]{\mathcal{U}}
+\newcommand{\Pc}[0]{\mathcal{P}}
+
 
 \title{Rapport projet Fouine}
 \author{Robin \bsc{Jourde} \& Nicolas \bsc{Nardino}}
@@ -24,7 +58,7 @@
 
 \cite{Landin66}
 
-\bsc{Tchana2025} \cite{Tchana21}
+\bsc{Tchana2025}~\cite{Tchana21}
 
 
 \bibliographystyle{plain}
