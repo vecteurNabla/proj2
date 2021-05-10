@@ -21,14 +21,14 @@
 
 \setenumerate[1]{label=\arabic*.}
 
-%\usetheme{Luebeck}
+% \usetheme{Luebeck}
 \usetheme{CambridgeUS}
 
 % \usecolortheme{dolphin}
 \usecolortheme{seahorse}
 
 \setbeamertemplate{section in toc}{%
-   ({\inserttocsectionnumber})~{\inserttocsection}%
+  ({\inserttocsectionnumber})~{\inserttocsection}%
 }
 
 \setbeamertemplate{navigation symbols}{}
@@ -111,29 +111,40 @@
 \end{frame}
 
 
-\begin{frame}{Un exemple}
+\begin{frame}[fragile]{Un exemple}
   \begin{itemize}
   \item fichier de test \texttt{not.ml}
 
-  \mint{ocaml}|
-  let x = not (0>1) in if x then prInt 1 else prInt 0
-  |
+    \mint{ocaml}|let x = not (0>1) in if x then prInt 1 else prInt 0|
 
- \item
-\texttt{ ./fouine -debug -outval -showtypes not.ml }
-
-\texttt{ x : bool }
-
-\texttt{ - : int }
-
-\texttt{ let x = not (( > ) (0) (1)) in (if x then prInt (1) else prInt (0)) }
-
-\texttt{ 1 }
- 
-\texttt{ 1 }
+  \item
+    \begin{minted}[breaklines]{shell}
+./fouine -debug -outval -showtypes not.ml
+x : bool
+- : int
+let x = not (( > ) (0) (1)) in (if x then prInt (1) else prInt (0))
+1
+1
+    \end{minted}
 
 
-\end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+  \fontsize{7}{7} \selectfont
+  \begin{minted}[breaklines]{ocaml}
+./fouine -cps -outcode not.ml
+let main_transform = (fun (x4V13r_L3r0yk1,x4V13r_L3r0ykE1) -> (fun (x4V13r_L3r0yk10,x4V13r_L3r0ykE10) -> (fun (x4V13r_L3r0yk12,x4V13r_L3r0ykE12) -> (fun (x4V13r_L3r0yk16,x4V13r_L3r0ykE16) -> x4V13r_L3r0yk16 (1)) (((fun x4V13r_L3r0yfst12 -> (fun (x4V13r_L3r0yk13,x4V13r_L3r0ykE13) -> (fun (x4V13r_L3r0yk15,x4V13r_L3r0ykE15) -> x4V13r_L3r0yk15 (0)) (((fun x4V13r_L3r0yfst13 -> (fun (x4V13r_L3r0yk14,x4V13r_L3r0ykE14) -> x4V13r_L3r0yk14 ((fun x4V13r_L3r0yv14 -> (fun (x4V13r_L3r0yk14,x4V13r_L3r0ykE14) -> x4V13r_L3r0yk14 ((fun x4V13r_L3r0yw14 -> (fun (x4V13r_L3r0yk14,x4V13r_L3r0ykE14) -> x4V13r_L3r0yk14 (( > ) (x4V13r_L3r0yv14) (x4V13r_L3r0yw14))))))))) (((fun x4V13r_L3r0ysnd13 -> x4V13r_L3r0ysnd13 (x4V13r_L3r0yfst13) ((x4V13r_L3r0yk13,x4V13r_L3r0ykE13))),x4V13r_L3r0ykE13))),x4V13r_L3r0ykE13))) (((fun x4V13r_L3r0ysnd12 -> x4V13r_L3r0ysnd12 (x4V13r_L3r0yfst12) ((x4V13r_L3r0yk12,x4V13r_L3r0ykE12))),x4V13r_L3r0ykE12))),x4V13r_L3r0ykE12))) (((fun x4V13r_L3r0yfst10 -> (fun (x4V13r_L3r0yk11,x4V13r_L3r0ykE11) -> x4V13r_L3r0yk11 ((fun x4V13r_L3r0yv11 -> (fun (x4V13r_L3r0yk11,x4V13r_L3r0ykE11) -> x4V13r_L3r0yk11 (not (x4V13r_L3r0yv11)))))) (((fun x4V13r_L3r0ysnd10 -> x4V13r_L3r0ysnd10 (x4V13r_L3r0yfst10) ((x4V13r_L3r0yk10,x4V13r_L3r0ykE10))),x4V13r_L3r0ykE10))),x4V13r_L3r0ykE10))) (((fun x -> (fun (x4V13r_L3r0yk2,x4V13r_L3r0ykE2) -> (fun (x4V13r_L3r0yk9,x4V13r_L3r0ykE9) -> x4V13r_L3r0yk9 (x)) (((fun x4V13r_L3r0yb2 -> (if x4V13r_L3r0yb2 then (fun (x4V13r_L3r0yk6,x4V13r_L3r0ykE6) -> (fun (x4V13r_L3r0yk8,x4V13r_L3r0ykE8) -> x4V13r_L3r0yk8 (1)) (((fun x4V13r_L3r0yfst6 -> (fun (x4V13r_L3r0yk7,x4V13r_L3r0ykE7) -> x4V13r_L3r0yk7 ((fun x4V13r_L3r0yv7 -> (fun (x4V13r_L3r0yk7,x4V13r_L3r0ykE7) -> x4V13r_L3r0yk7 (prInt (x4V13r_L3r0yv7)))))) (((fun x4V13r_L3r0ysnd6 -> x4V13r_L3r0ysnd6 (x4V13r_L3r0yfst6) ((x4V13r_L3r0yk6,x4V13r_L3r0ykE6))),x4V13r_L3r0ykE6))),x4V13r_L3r0ykE6))) else (fun (x4V13r_L3r0yk3,x4V13r_L3r0ykE3) -> (fun (x4V13r_L3r0yk5,x4V13r_L3r0ykE5) -> x4V13r_L3r0yk5 (0)) (((fun x4V13r_L3r0yfst3 -> (fun (x4V13r_L3r0yk4,x4V13r_L3r0ykE4) -> x4V13r_L3r0yk4 ((fun x4V13r_L3r0yv4 -> (fun (x4V13r_L3r0yk4,x4V13r_L3r0ykE4) -> x4V13r_L3r0yk4 (prInt (x4V13r_L3r0yv4)))))) (((fun x4V13r_L3r0ysnd3 -> x4V13r_L3r0ysnd3 (x4V13r_L3r0yfst3) ((x4V13r_L3r0yk3,x4V13r_L3r0ykE3))),x4V13r_L3r0ykE3))),x4V13r_L3r0ykE3)))) ((x4V13r_L3r0yk2,x4V13r_L3r0ykE2))),x4V13r_L3r0ykE2))) ((x4V13r_L3r0yk1,x4V13r_L3r0ykE1))),x4V13r_L3r0ykE1))) in main_transform (((fun x4V13r_L3r0yx -> x4V13r_L3r0yx),(fun x4V13r_L3r0yx -> x4V13r_L3r0yx))
+  \end{minted}
+\end{frame}
+
+\begin{frame}[fragile]
+  \begin{minted}[breaklines]{ocaml}
+./fouine -cps -outcode -optim -prefix "" not.ml 
+let main_transform = (fun (k1,kE1) -> (fun fst10 -> (fun x -> (if x then (fun (k6,kE6) -> k6 (prInt (1))) else (fun (k3,kE3) -> k3 (prInt (0)))) ((k1,kE1))) (not (fst10))) (( > ) (0) (1))) in main_transform (((fun x -> x),(fun x -> x)))
+  \end{minted}
+  
 \end{frame}
 
 \section{Fouine, comment ça marche ?}
@@ -194,7 +205,7 @@
 
 
   \end{itemize}
-  \end{frame}
+\end{frame}
 
 \section{Conclusion}
 \begin{frame}{C'est fini !}
