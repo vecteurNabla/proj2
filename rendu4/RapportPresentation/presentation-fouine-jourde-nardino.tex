@@ -185,15 +185,14 @@ let main_transform = (fun (k1,kE1) -> (fun fst10 -> (fun x -> (if x then (fun (k
   \end{itemize}
 \end{frame}
 
-\begin{frame}{Exemple détaillé : \texttt{prInt}}
+\begin{frame}[fragile]{Exemple détaillé : \texttt{prInt}}
   \begin{itemize}
   \item code de la fonction
-
-    \texttt{ let \_prInt m = function }
-
-    \texttt{ | Const (Int i) -> (print\_int i ; print\_newline () ; \~\& (Int i) ) }
-
-    \texttt{ | \_ -> raise PrInt\_not\_int }
+    \begin{minted}[breaklines]{ocaml}
+let _prInt m = function
+ | Const (Int i) -> (print_int i ; print_newline () ; ~& (Int i) )
+ | _ -> raise PrInt_not_int
+    \end{minted}
 
   \item insertion dans l'environnement
 
